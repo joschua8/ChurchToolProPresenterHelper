@@ -1,0 +1,49 @@
+{
+  "lines_per_slide": 4,
+  "pairs_per_slide": 2,
+  "main": {
+    "font": "Helvetica",
+    "size": 85.0,
+    "bold": true,
+    "italic": false,
+    "color": "#ffffff",
+    "uppercase": false
+  },
+  "translation": {
+    "font": "Arial",
+    "size": 70.0,
+    "bold": false,
+    "italic": true,
+    "color": "#ffffff",
+    "uppercase": false
+  },
+  "pair_spacing": 10,
+  "align": "center",
+  "valign": "middle",
+  "margin_top": 95,
+  "margin_bottom": 95,
+  "margin_left": 0,
+  "margin_right": 0,
+  "background": "#000000",
+  "box_fill": true,
+  "box_color": "#000000",
+  "box_opacity": 1.0,
+  "shadow": false,
+  "shrink_to_fit": false,
+  "hotkeys_enabled": true,
+  "hotkeys": {
+    "Bridge": "B",
+    "Chorus": "C",
+    "Interlude": "I",
+    "Intro": "N",
+    "Outro": "O",
+    "Pre-Chorus": "P",
+    "Tag": "T",
+    "Verse 1": "A",
+    "Verse 2": "S",
+    "Verse 3": "D",
+    "Verse 4": "F",
+    "Verse 5": "G",
+    "Verse 6": "H"
+  }
+}

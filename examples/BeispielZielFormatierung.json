@@ -1,0 +1,2711 @@
+application_info {
+  platform: PLATFORM_MACOS
+  platform_version {
+    major_version: 27
+  }
+  application: APPLICATION_PROPRESENTER
+  application_version {
+    major_version: 21
+    minor_version: 3
+    build: "352518178"
+  }
+}
+uuid {
+  string: "93A29D0E-C77C-453B-9CC5-0FB231D966F2"
+}
+name: "House Of Miracles"
+notes: "V1 - V2 - CHO - V3 - CHO 2x - BRI 2x - CHO 2x"
+background {
+  color {
+  }
+  is_enabled: true
+}
+chord_chart {
+  platform: PLATFORM_MACOS
+}
+selected_arrangement {
+  string: "F5FEC384-7F5E-472D-B712-47E050273487"
+}
+arrangements {
+  uuid {
+    string: "F5FEC384-7F5E-472D-B712-47E050273487"
+  }
+  name: "Standard"
+  group_identifiers {
+    string: "B6E78FF4-CEF3-4938-8824-3D8B1C260E04"
+  }
+  group_identifiers {
+    string: "E420CAF6-4D04-405C-BCEB-9F7F7765BF9F"
+  }
+  group_identifiers {
+    string: "639CAC46-9B01-46E9-8DD6-5ECC3288394B"
+  }
+  group_identifiers {
+    string: "6395E86D-DA9F-4FAE-957E-5545E349CFEC"
+  }
+  group_identifiers {
+    string: "639CAC46-9B01-46E9-8DD6-5ECC3288394B"
+  }
+  group_identifiers {
+    string: "639CAC46-9B01-46E9-8DD6-5ECC3288394B"
+  }
+  group_identifiers {
+    string: "72503570-BBEC-4763-83BE-47D3F95E6704"
+  }
+  group_identifiers {
+    string: "7461B0A5-3390-4754-9AC9-6DA644C49D86"
+  }
+  group_identifiers {
+    string: "72503570-BBEC-4763-83BE-47D3F95E6704"
+  }
+  group_identifiers {
+    string: "7461B0A5-3390-4754-9AC9-6DA644C49D86"
+  }
+  group_identifiers {
+    string: "639CAC46-9B01-46E9-8DD6-5ECC3288394B"
+  }
+  group_identifiers {
+    string: "639CAC46-9B01-46E9-8DD6-5ECC3288394B"
+  }
+  group_identifiers {
+    string: "62D93C11-C94E-4912-9CAA-0A4C0A944332"
+  }
+  group_identifiers {
+    string: "639CAC46-9B01-46E9-8DD6-5ECC3288394B"
+  }
+  group_identifiers {
+    string: "639CAC46-9B01-46E9-8DD6-5ECC3288394B"
+  }
+  group_identifiers {
+    string: "72503570-BBEC-4763-83BE-47D3F95E6704"
+  }
+  group_identifiers {
+    string: "7461B0A5-3390-4754-9AC9-6DA644C49D86"
+  }
+  group_identifiers {
+    string: "639CAC46-9B01-46E9-8DD6-5ECC3288394B"
+  }
+}
+cue_groups {
+  group {
+    uuid {
+      string: "B6E78FF4-CEF3-4938-8824-3D8B1C260E04"
+    }
+    name: "Verse 1"
+    color {
+      red: 1
+      green: 1
+      alpha: 1
+    }
+    hotKey {
+    }
+  }
+  cue_identifiers {
+    string: "92F540F1-BCA2-4AF7-9330-74FECE56978C"
+  }
+  cue_identifiers {
+    string: "C0F02D4F-B7BA-4576-AD1E-7E6C281CDA35"
+  }
+}
+cue_groups {
+  group {
+    uuid {
+      string: "E420CAF6-4D04-405C-BCEB-9F7F7765BF9F"
+    }
+    name: "Verse 2"
+    color {
+      red: 1
+      alpha: 1
+    }
+    hotKey {
+    }
+  }
+  cue_identifiers {
+    string: "99A50058-2ECA-4986-9900-A0BE2F2594C7"
+  }
+  cue_identifiers {
+    string: "140B6403-5771-4775-8CDE-848F9C46E82C"
+  }
+}
+cue_groups {
+  group {
+    uuid {
+      string: "639CAC46-9B01-46E9-8DD6-5ECC3288394B"
+    }
+    name: "Chorus"
+    color {
+      red: 1
+      alpha: 1
+    }
+    hotKey {
+    }
+  }
+  cue_identifiers {
+    string: "EEB55FC1-E66F-47E6-A5D2-D437ECF98CC0"
+  }
+  cue_identifiers {
+    string: "C1B46949-F853-4C85-842C-4DEA18366A0C"
+  }
+  cue_identifiers {
+    string: "470A7905-CC8D-4992-B8C5-71D98F727567"
+  }
+}
+cue_groups {
+  group {
+    uuid {
+      string: "6395E86D-DA9F-4FAE-957E-5545E349CFEC"
+    }
+    name: "Verse 3"
+    color {
+      green: 1
+      alpha: 1
+    }
+    hotKey {
+    }
+  }
+  cue_identifiers {
+    string: "F6629844-7628-4F66-95DD-14E8F0AD9E20"
+  }
+  cue_identifiers {
+    string: "F5DCAAAF-63DA-439D-A2D9-4CEC7E47A0D1"
+  }
+}
+cue_groups {
+  group {
+    uuid {
+      string: "72503570-BBEC-4763-83BE-47D3F95E6704"
+    }
+    name: "Bridge"
+    color {
+      blue: 1
+      alpha: 1
+    }
+    hotKey {
+    }
+  }
+  cue_identifiers {
+    string: "93622F44-6DB3-47BA-921F-FD74143F964D"
+  }
+  cue_identifiers {
+    string: "6334A6AA-B52C-4EAA-A54F-0AD3F4E71153"
+  }
+}
+cue_groups {
+  group {
+    uuid {
+      string: "7461B0A5-3390-4754-9AC9-6DA644C49D86"
+    }
+    name: "Bridge 2"
+    color {
+      blue: 1
+      alpha: 1
+    }
+    hotKey {
+    }
+  }
+  cue_identifiers {
+    string: "34FF6803-CCCF-4AA7-911B-9D7D6B19C8F8"
+  }
+  cue_identifiers {
+    string: "B75F3BA9-39B1-4FDF-AF4F-0A8183326336"
+  }
+}
+cue_groups {
+  group {
+    uuid {
+      string: "62D93C11-C94E-4912-9CAA-0A4C0A944332"
+    }
+    name: "Instrumental"
+    color {
+      alpha: 1
+    }
+    hotKey {
+    }
+  }
+  cue_identifiers {
+    string: "F4E364D5-8882-4E6D-988F-42B71E378708"
+  }
+}
+cues {
+  uuid {
+    string: "C0F02D4F-B7BA-4576-AD1E-7E6C281CDA35"
+  }
+  hot_key {
+  }
+  actions {
+    uuid {
+      string: "57396241-4851-457C-A700-DE754CFC8652"
+    }
+    isEnabled: true
+    type: ACTION_TYPE_PRESENTATION_SLIDE
+    slide {
+      presentation {
+        base_slide {
+          elements {
+            element {
+              uuid {
+                string: "7FD57FFC-6C82-4444-BBD9-E2AA420D9FF5"
+              }
+              name: "TextBox"
+              bounds {
+                origin {
+                }
+                size {
+                  width: 1920
+                  height: 890
+                }
+              }
+              rotation: 360
+              opacity: 1
+              path {
+                closed: true
+                points {
+                  point {
+                  }
+                  q0 {
+                  }
+                  q1 {
+                  }
+                }
+                points {
+                  point {
+                    x: 1
+                  }
+                  q0 {
+                    x: 1
+                  }
+                  q1 {
+                    x: 1
+                  }
+                }
+                points {
+                  point {
+                    x: 1
+                    y: 1
+                  }
+                  q0 {
+                    x: 1
+                    y: 1
+                  }
+                  q1 {
+                    x: 1
+                    y: 1
+                  }
+                }
+                points {
+                  point {
+                    y: 1
+                  }
+                  q0 {
+                    y: 1
+                  }
+                  q1 {
+                    y: 1
+                  }
+                }
+                shape {
+                  type: TYPE_RECTANGLE
+                }
+              }
+              fill {
+                color {
+                  alpha: 1
+                }
+                enable: true
+              }
+              stroke {
+                color {
+                  alpha: 1
+                }
+              }
+              shadow {
+                color {
+                }
+              }
+              feather {
+              }
+              text {
+                attributes {
+                  font {
+                    name: "HelveticaNeue"
+                    size: 42
+                    family: "Helvetica Neue"
+                  }
+                  text_solid_fill {
+                    red: 1
+                    green: 1
+                    blue: 1
+                    alpha: 1
+                  }
+                  underline_style {
+                  }
+                  paragraph_style {
+                    alignment: ALIGNMENT_CENTER
+                    line_height_multiple: 1
+                    text_list {
+                    }
+                  }
+                  strikethrough_style {
+                  }
+                }
+                shadow {
+                  angle: 315.00000247078003
+                  offset: 5.6568542494923806
+                  color {
+                    alpha: 1
+                  }
+                  opacity: 1
+                }
+                rtf_data: "{\\rtf1\\ansi\\ansicpg1252\\cocoartf2907\n\\cocoatextscaling0\\cocoaplatform0{\\fonttbl\\f0\\fswiss\\fcharset0 Helvetica-Bold;\\f1\\fswiss\\fcharset0 Helvetica;\\f2\\fswiss\\fcharset0 Arial-ItalicMT;\n}\n{\\colortbl;\\red255\\green255\\blue255;}\n{\\*\\expandedcolortbl;;}\n\\pard\\qc\\partightenfactor0\n\n\\f0\\b\\fs170 \\cf1 \\expnd0\\expndtw0\\kerning0\nWhere every demon trembles\n\\f1\\b0\\fs24 \\cf0 \\kerning1\\expnd0\\expndtw0 \\\n\\pard\\qc\\partightenfactor0\n\n\\f2\\i\\fs140 \\cf1 \\expnd0\\expndtw0\\kerning0\nWo jeder D\\\'e4mon zittert\n\\f1\\i0\\fs24 \\cf0 \\kerning1\\expnd0\\expndtw0 \\\n\\pard\\qc\\partightenfactor0\n\n\\fs20 \\cf1 \\expnd0\\expndtw0\\kerning0\n\\\'a0\n\\fs24 \\cf0 \\kerning1\\expnd0\\expndtw0 \\\n\\pard\\qc\\partightenfactor0\n\n\\f0\\b\\fs170 \\cf1 \\expnd0\\expndtw0\\kerning0\nWhere we proclaim Your name\n\\f1\\b0\\fs24 \\cf0 \\kerning1\\expnd0\\expndtw0 \\\n\\pard\\qc\\partightenfactor0\n\n\\f2\\i\\fs140 \\cf1 \\expnd0\\expndtw0\\kerning0\nWo wir Deinen Namen verk\\\'fcnden}"
+                vertical_alignment: VERTICAL_ALIGNMENT_BOTTOM
+                margins {
+                }
+                is_superscript_standardized: true
+                transformDelimiter: "  \342\200\242  "
+                chord_pro {
+                  color {
+                    red: 0.993
+                    green: 0.76
+                    blue: 0.032
+                    alpha: 1
+                  }
+                }
+              }
+              text_line_mask {
+                enabled: true
+                height_offset: 3
+              }
+            }
+            info: 3
+            text_scroller {
+              scroll_rate: 0.5
+              should_repeat: true
+              repeat_distance: 0.052083333333333336
+            }
+          }
+          background_color {
+            alpha: 1
+          }
+          size {
+            width: 1920
+            height: 1080
+          }
+          uuid {
+            string: "828BE235-C96C-4B5D-BB87-FEE0D18AF207"
+          }
+        }
+        chord_chart {
+          platform: PLATFORM_MACOS
+        }
+      }
+    }
+  }
+  isEnabled: true
+}
+cues {
+  uuid {
+    string: "140B6403-5771-4775-8CDE-848F9C46E82C"
+  }
+  hot_key {
+  }
+  actions {
+    uuid {
+      string: "9FE16897-DEC6-427E-93C8-71122D0DF96F"
+    }
+    isEnabled: true
+    type: ACTION_TYPE_PRESENTATION_SLIDE
+    slide {
+      presentation {
+        base_slide {
+          elements {
+            element {
+              uuid {
+                string: "CA3A8B83-062A-4B94-B255-1B55180D535A"
+              }
+              name: "TextBox"
+              bounds {
+                origin {
+                }
+                size {
+                  width: 1920
+                  height: 890
+                }
+              }
+              rotation: 360
+              opacity: 1
+              path {
+                closed: true
+                points {
+                  point {
+                  }
+                  q0 {
+                  }
+                  q1 {
+                  }
+                }
+                points {
+                  point {
+                    x: 1
+                  }
+                  q0 {
+                    x: 1
+                  }
+                  q1 {
+                    x: 1
+                  }
+                }
+                points {
+                  point {
+                    x: 1
+                    y: 1
+                  }
+                  q0 {
+                    x: 1
+                    y: 1
+                  }
+                  q1 {
+                    x: 1
+                    y: 1
+                  }
+                }
+                points {
+                  point {
+                    y: 1
+                  }
+                  q0 {
+                    y: 1
+                  }
+                  q1 {
+                    y: 1
+                  }
+                }
+                shape {
+                  type: TYPE_RECTANGLE
+                }
+              }
+              fill {
+                color {
+                  alpha: 1
+                }
+                enable: true
+              }
+              stroke {
+                color {
+                  alpha: 1
+                }
+              }
+              shadow {
+                color {
+                }
+              }
+              feather {
+              }
+              text {
+                attributes {
+                  font {
+                    name: "HelveticaNeue"
+                    size: 42
+                    family: "Helvetica Neue"
+                  }
+                  text_solid_fill {
+                    red: 1
+                    green: 1
+                    blue: 1
+                    alpha: 1
+                  }
+                  underline_style {
+                  }
+                  paragraph_style {
+                    alignment: ALIGNMENT_CENTER
+                    line_height_multiple: 1
+                    text_list {
+                    }
+                  }
+                  strikethrough_style {
+                  }
+                }
+                shadow {
+                  angle: 315.00000247078003
+                  offset: 5.6568542494923806
+                  color {
+                    alpha: 1
+                  }
+                  opacity: 1
+                }
+                rtf_data: "{\\rtf1\\ansi\\ansicpg1252\\cocoartf2907\n\\cocoatextscaling0\\cocoaplatform0{\\fonttbl\\f0\\fswiss\\fcharset0 Helvetica-Bold;\\f1\\fswiss\\fcharset0 Helvetica;\\f2\\fswiss\\fcharset0 Arial-ItalicMT;\n}\n{\\colortbl;\\red255\\green255\\blue255;}\n{\\*\\expandedcolortbl;;}\n\\pard\\qc\\partightenfactor0\n\n\\f0\\b\\fs170 \\cf1 \\expnd0\\expndtw0\\kerning0\nYou have our full attention\n\\f1\\b0\\fs24 \\cf0 \\kerning1\\expnd0\\expndtw0 \\\n\\pard\\qc\\partightenfactor0\n\n\\f2\\i\\fs140 \\cf1 \\expnd0\\expndtw0\\kerning0\nDu hast unsere volle Aufmerksamkeit\n\\f1\\i0\\fs24 \\cf0 \\kerning1\\expnd0\\expndtw0 \\\n\\pard\\qc\\partightenfactor0\n\n\\fs20 \\cf1 \\expnd0\\expndtw0\\kerning0\n\\\'a0\n\\fs24 \\cf0 \\kerning1\\expnd0\\expndtw0 \\\n\\pard\\qc\\partightenfactor0\n\n\\f0\\b\\fs170 \\cf1 \\expnd0\\expndtw0\\kerning0\nYou have the final say\n\\f1\\b0\\fs24 \\cf0 \\kerning1\\expnd0\\expndtw0 \\\n\\pard\\qc\\partightenfactor0\n\n\\f2\\i\\fs140 \\cf1 \\expnd0\\expndtw0\\kerning0\nDu hast das letzte Wort}"
+                vertical_alignment: VERTICAL_ALIGNMENT_BOTTOM
+                margins {
+                }
+                is_superscript_standardized: true
+                transformDelimiter: "  \342\200\242  "
+                chord_pro {
+                  color {
+                    red: 0.993
+                    green: 0.76
+                    blue: 0.032
+                    alpha: 1
+                  }
+                }
+              }
+              text_line_mask {
+                enabled: true
+                height_offset: 3
+              }
+            }
+            info: 3
+            text_scroller {
+              scroll_rate: 0.5
+              should_repeat: true
+              repeat_distance: 0.052083333333333336
+            }
+          }
+          background_color {
+            alpha: 1
+          }
+          size {
+            width: 1920
+            height: 1080
+          }
+          uuid {
+            string: "C79E25C8-6AB9-4E97-867E-9DCB077EF3D8"
+          }
+        }
+        chord_chart {
+          platform: PLATFORM_MACOS
+        }
+      }
+    }
+  }
+  isEnabled: true
+}
+cues {
+  uuid {
+    string: "470A7905-CC8D-4992-B8C5-71D98F727567"
+  }
+  hot_key {
+  }
+  actions {
+    uuid {
+      string: "3269AE8C-B336-4158-B414-C8B434C20A2E"
+    }
+    isEnabled: true
+    type: ACTION_TYPE_PRESENTATION_SLIDE
+    slide {
+      presentation {
+        base_slide {
+          elements {
+            element {
+              uuid {
+                string: "DF874F54-33E1-49E6-91B6-DB6462ED9EBD"
+              }
+              name: "TextBox"
+              bounds {
+                origin {
+                }
+                size {
+                  width: 1920
+                  height: 890
+                }
+              }
+              rotation: 360
+              opacity: 1
+              path {
+                closed: true
+                points {
+                  point {
+                  }
+                  q0 {
+                  }
+                  q1 {
+                  }
+                }
+                points {
+                  point {
+                    x: 1
+                  }
+                  q0 {
+                    x: 1
+                  }
+                  q1 {
+                    x: 1
+                  }
+                }
+                points {
+                  point {
+                    x: 1
+                    y: 1
+                  }
+                  q0 {
+                    x: 1
+                    y: 1
+                  }
+                  q1 {
+                    x: 1
+                    y: 1
+                  }
+                }
+                points {
+                  point {
+                    y: 1
+                  }
+                  q0 {
+                    y: 1
+                  }
+                  q1 {
+                    y: 1
+                  }
+                }
+                shape {
+                  type: TYPE_RECTANGLE
+                }
+              }
+              fill {
+                color {
+                  alpha: 1
+                }
+                enable: true
+              }
+              stroke {
+                color {
+                  alpha: 1
+                }
+              }
+              shadow {
+                color {
+                }
+              }
+              feather {
+              }
+              text {
+                attributes {
+                  font {
+                    name: "HelveticaNeue"
+                    size: 42
+                    family: "Helvetica Neue"
+                  }
+                  text_solid_fill {
+                    red: 1
+                    green: 1
+                    blue: 1
+                    alpha: 1
+                  }
+                  underline_style {
+                  }
+                  paragraph_style {
+                    alignment: ALIGNMENT_CENTER
+                    line_height_multiple: 1
+                    text_list {
+                    }
+                  }
+                  strikethrough_style {
+                  }
+                }
+                shadow {
+                  angle: 315.00000247078003
+                  offset: 5.6568542494923806
+                  color {
+                    alpha: 1
+                  }
+                  opacity: 1
+                }
+                rtf_data: "{\\rtf1\\ansi\\ansicpg1252\\cocoartf2907\n\\cocoatextscaling0\\cocoaplatform0{\\fonttbl\\f0\\fswiss\\fcharset0 Helvetica-Bold;\\f1\\fswiss\\fcharset0 Helvetica;\\f2\\fswiss\\fcharset0 Arial-ItalicMT;\n}\n{\\colortbl;\\red255\\green255\\blue255;}\n{\\*\\expandedcolortbl;;}\n\\pard\\qc\\partightenfactor0\n\n\\f0\\b\\fs170 \\cf1 \\expnd0\\expndtw0\\kerning0\nEverything in the name of Jesus\n\\f1\\b0\\fs24 \\cf0 \\kerning1\\expnd0\\expndtw0 \\\n\\pard\\qc\\partightenfactor0\n\n\\f2\\i\\fs140 \\cf1 \\expnd0\\expndtw0\\kerning0\nAlles im Namen Jesu\n\\f1\\i0\\fs24 \\cf0 \\kerning1\\expnd0\\expndtw0 \\\n\\pard\\qc\\partightenfactor0\n\n\\fs20 \\cf1 \\expnd0\\expndtw0\\kerning0\n\\\'a0\n\\fs24 \\cf0 \\kerning1\\expnd0\\expndtw0 \\\n\\pard\\qc\\partightenfactor0\n\n\\f0\\b\\fs170 \\cf1 \\expnd0\\expndtw0\\kerning0\nThis is a house of miracles\n\\f1\\b0\\fs24 \\cf0 \\kerning1\\expnd0\\expndtw0 \\\n\\pard\\qc\\partightenfactor0\n\n\\f2\\i\\fs140 \\cf1 \\expnd0\\expndtw0\\kerning0\nDies ist ein Haus der Wunder}"
+                vertical_alignment: VERTICAL_ALIGNMENT_BOTTOM
+                margins {
+                }
+                is_superscript_standardized: true
+                transformDelimiter: "  \342\200\242  "
+                chord_pro {
+                  color {
+                    red: 0.993
+                    green: 0.76
+                    blue: 0.032
+                    alpha: 1
+                  }
+                }
+              }
+              text_line_mask {
+                enabled: true
+                height_offset: 3
+              }
+            }
+            info: 3
+            text_scroller {
+              scroll_rate: 0.5
+              should_repeat: true
+              repeat_distance: 0.052083333333333336
+            }
+          }
+          background_color {
+            alpha: 1
+          }
+          size {
+            width: 1920
+            height: 1080
+          }
+          uuid {
+            string: "0FA9CF51-E34F-4DED-B99F-06D1F1523DBA"
+          }
+        }
+        chord_chart {
+          platform: PLATFORM_MACOS
+        }
+      }
+    }
+  }
+  isEnabled: true
+}
+cues {
+  uuid {
+    string: "F6629844-7628-4F66-95DD-14E8F0AD9E20"
+  }
+  hot_key {
+    code: KEY_CODE_ANSI_X
+  }
+  actions {
+    uuid {
+      string: "B3D49753-1B02-40EC-8267-D1698761A10F"
+    }
+    isEnabled: true
+    type: ACTION_TYPE_PRESENTATION_SLIDE
+    slide {
+      presentation {
+        base_slide {
+          elements {
+            element {
+              uuid {
+                string: "FA576FC5-5180-43C4-A42C-9F31FFAC9535"
+              }
+              name: "TextBox"
+              bounds {
+                origin {
+                }
+                size {
+                  width: 1920
+                  height: 890
+                }
+              }
+              rotation: 360
+              opacity: 1
+              path {
+                closed: true
+                points {
+                  point {
+                  }
+                  q0 {
+                  }
+                  q1 {
+                  }
+                }
+                points {
+                  point {
+                    x: 1
+                  }
+                  q0 {
+                    x: 1
+                  }
+                  q1 {
+                    x: 1
+                  }
+                }
+                points {
+                  point {
+                    x: 1
+                    y: 1
+                  }
+                  q0 {
+                    x: 1
+                    y: 1
+                  }
+                  q1 {
+                    x: 1
+                    y: 1
+                  }
+                }
+                points {
+                  point {
+                    y: 1
+                  }
+                  q0 {
+                    y: 1
+                  }
+                  q1 {
+                    y: 1
+                  }
+                }
+                shape {
+                  type: TYPE_RECTANGLE
+                }
+              }
+              fill {
+                color {
+                  alpha: 1
+                }
+                enable: true
+              }
+              stroke {
+                color {
+                  alpha: 1
+                }
+              }
+              shadow {
+                color {
+                }
+              }
+              feather {
+              }
+              text {
+                attributes {
+                  font {
+                    name: "HelveticaNeue"
+                    size: 42
+                    family: "Helvetica Neue"
+                  }
+                  text_solid_fill {
+                    red: 1
+                    green: 1
+                    blue: 1
+                    alpha: 1
+                  }
+                  underline_style {
+                  }
+                  paragraph_style {
+                    alignment: ALIGNMENT_CENTER
+                    line_height_multiple: 1
+                    text_list {
+                    }
+                  }
+                  strikethrough_style {
+                  }
+                }
+                shadow {
+                  angle: 315.00000247078003
+                  offset: 5.6568542494923806
+                  color {
+                    alpha: 1
+                  }
+                  opacity: 1
+                }
+                rtf_data: "{\\rtf1\\ansi\\ansicpg1252\\cocoartf2907\n\\cocoatextscaling0\\cocoaplatform0{\\fonttbl\\f0\\fswiss\\fcharset0 Helvetica-Bold;\\f1\\fswiss\\fcharset0 Helvetica;\\f2\\fswiss\\fcharset0 Arial-ItalicMT;\n}\n{\\colortbl;\\red255\\green255\\blue255;}\n{\\*\\expandedcolortbl;;}\n\\pard\\qc\\partightenfactor0\n\n\\f0\\b\\fs170 \\cf1 \\expnd0\\expndtw0\\kerning0\nThere\'s resurrection power\n\\f1\\b0\\fs24 \\cf0 \\kerning1\\expnd0\\expndtw0 \\\n\\pard\\qc\\partightenfactor0\n\n\\f2\\i\\fs140 \\cf1 \\expnd0\\expndtw0\\kerning0\nEs gibt Auferstehungskraft\n\\f1\\i0\\fs24 \\cf0 \\kerning1\\expnd0\\expndtw0 \\\n\\pard\\qc\\partightenfactor0\n\n\\fs20 \\cf1 \\expnd0\\expndtw0\\kerning0\n\\\'a0\n\\fs24 \\cf0 \\kerning1\\expnd0\\expndtw0 \\\n\\pard\\qc\\partightenfactor0\n\n\\f0\\b\\fs170 \\cf1 \\expnd0\\expndtw0\\kerning0\nYour blood runs through our veins\n\\f1\\b0\\fs24 \\cf0 \\kerning1\\expnd0\\expndtw0 \\\n\\pard\\qc\\partightenfactor0\n\n\\f2\\i\\fs140 \\cf1 \\expnd0\\expndtw0\\kerning0\nDein Blut fliesst durch unsere Venen}"
+                vertical_alignment: VERTICAL_ALIGNMENT_BOTTOM
+                margins {
+                }
+                is_superscript_standardized: true
+                transformDelimiter: "  \342\200\242  "
+                chord_pro {
+                  color {
+                    red: 0.993
+                    green: 0.76
+                    blue: 0.032
+                    alpha: 1
+                  }
+                }
+              }
+              text_line_mask {
+                enabled: true
+                height_offset: 3
+              }
+            }
+            info: 3
+            text_scroller {
+              scroll_rate: 0.5
+              should_repeat: true
+              repeat_distance: 0.052083333333333336
+            }
+          }
+          background_color {
+            alpha: 1
+          }
+          size {
+            width: 1920
+            height: 1080
+          }
+          uuid {
+            string: "03EF6866-B030-4F47-B248-45E066D10E32"
+          }
+        }
+        chord_chart {
+          platform: PLATFORM_MACOS
+        }
+      }
+    }
+  }
+  isEnabled: true
+}
+cues {
+  uuid {
+    string: "F4E364D5-8882-4E6D-988F-42B71E378708"
+  }
+  hot_key {
+    code: KEY_CODE_ANSI_S
+  }
+  actions {
+    uuid {
+      string: "4208215B-3DAA-4591-B45C-EF0775933282"
+    }
+    isEnabled: true
+    type: ACTION_TYPE_PRESENTATION_SLIDE
+    slide {
+      presentation {
+        base_slide {
+          elements {
+            element {
+              uuid {
+                string: "17D51E73-07FB-467A-A5E4-C1F758162B13"
+              }
+              name: "TextBox"
+              bounds {
+                origin {
+                }
+                size {
+                  width: 1920
+                  height: 890
+                }
+              }
+              rotation: 360
+              opacity: 1
+              path {
+                closed: true
+                points {
+                  point {
+                  }
+                  q0 {
+                  }
+                  q1 {
+                  }
+                }
+                points {
+                  point {
+                    x: 1
+                  }
+                  q0 {
+                    x: 1
+                  }
+                  q1 {
+                    x: 1
+                  }
+                }
+                points {
+                  point {
+                    x: 1
+                    y: 1
+                  }
+                  q0 {
+                    x: 1
+                    y: 1
+                  }
+                  q1 {
+                    x: 1
+                    y: 1
+                  }
+                }
+                points {
+                  point {
+                    y: 1
+                  }
+                  q0 {
+                    y: 1
+                  }
+                  q1 {
+                    y: 1
+                  }
+                }
+                shape {
+                  type: TYPE_RECTANGLE
+                }
+              }
+              fill {
+                color {
+                  alpha: 1
+                }
+                enable: true
+              }
+              stroke {
+                color {
+                  alpha: 1
+                }
+              }
+              shadow {
+                color {
+                }
+              }
+              feather {
+              }
+              text {
+                attributes {
+                  font {
+                    name: "HelveticaNeue"
+                    size: 42
+                    family: "Helvetica Neue"
+                  }
+                  text_solid_fill {
+                    red: 1
+                    green: 1
+                    blue: 1
+                    alpha: 1
+                  }
+                  underline_style {
+                  }
+                  paragraph_style {
+                    alignment: ALIGNMENT_CENTER
+                    line_height_multiple: 1
+                    default_tab_interval: 84
+                    text_list {
+                    }
+                  }
+                  strikethrough_style {
+                  }
+                  19: 1
+                }
+                shadow {
+                  angle: 315.00000247078003
+                  offset: 5.6568542494923806
+                  color {
+                    alpha: 1
+                  }
+                  opacity: 1
+                }
+                rtf_data: "{\\rtf1\\ansi\\ansicpg1252\\cocoartf2907\n\\cocoatextscaling0\\cocoaplatform0{\\fonttbl}\n{\\colortbl;\\red255\\green255\\blue255;}\n{\\*\\expandedcolortbl;;}\n}"
+                vertical_alignment: VERTICAL_ALIGNMENT_BOTTOM
+                margins {
+                }
+                is_superscript_standardized: true
+                transformDelimiter: "  \342\200\242  "
+                chord_pro {
+                  color {
+                    red: 0.993
+                    green: 0.76
+                    blue: 0.032
+                    alpha: 1
+                  }
+                }
+              }
+              text_line_mask {
+                enabled: true
+                height_offset: 3
+              }
+            }
+            info: 3
+            text_scroller {
+              scroll_rate: 0.5
+              should_repeat: true
+              repeat_distance: 0.052083333333333336
+            }
+          }
+          background_color {
+            alpha: 1
+          }
+          size {
+            width: 1920
+            height: 1080
+          }
+          uuid {
+            string: "414C692C-34A2-4A7A-8B16-F40AA91AED98"
+          }
+        }
+        chord_chart {
+          platform: PLATFORM_MACOS
+        }
+      }
+    }
+  }
+  isEnabled: true
+}
+cues {
+  uuid {
+    string: "EEB55FC1-E66F-47E6-A5D2-D437ECF98CC0"
+  }
+  hot_key {
+    code: KEY_CODE_ANSI_C
+  }
+  actions {
+    uuid {
+      string: "F9D05F5A-7AB0-4B18-BDEA-B54772DFEE1C"
+    }
+    isEnabled: true
+    type: ACTION_TYPE_PRESENTATION_SLIDE
+    slide {
+      presentation {
+        base_slide {
+          elements {
+            element {
+              uuid {
+                string: "7CF41D36-19F4-4B5D-88E9-031565EC81A9"
+              }
+              name: "TextBox"
+              bounds {
+                origin {
+                }
+                size {
+                  width: 1920
+                  height: 890
+                }
+              }
+              rotation: 360
+              opacity: 1
+              path {
+                closed: true
+                points {
+                  point {
+                  }
+                  q0 {
+                  }
+                  q1 {
+                  }
+                }
+                points {
+                  point {
+                    x: 1
+                  }
+                  q0 {
+                    x: 1
+                  }
+                  q1 {
+                    x: 1
+                  }
+                }
+                points {
+                  point {
+                    x: 1
+                    y: 1
+                  }
+                  q0 {
+                    x: 1
+                    y: 1
+                  }
+                  q1 {
+                    x: 1
+                    y: 1
+                  }
+                }
+                points {
+                  point {
+                    y: 1
+                  }
+                  q0 {
+                    y: 1
+                  }
+                  q1 {
+                    y: 1
+                  }
+                }
+                shape {
+                  type: TYPE_RECTANGLE
+                }
+              }
+              fill {
+                color {
+                  alpha: 1
+                }
+                enable: true
+              }
+              stroke {
+                color {
+                  alpha: 1
+                }
+              }
+              shadow {
+                color {
+                }
+              }
+              feather {
+              }
+              text {
+                attributes {
+                  font {
+                    name: "HelveticaNeue"
+                    size: 42
+                    family: "Helvetica Neue"
+                  }
+                  text_solid_fill {
+                    red: 1
+                    green: 1
+                    blue: 1
+                    alpha: 1
+                  }
+                  underline_style {
+                  }
+                  paragraph_style {
+                    alignment: ALIGNMENT_CENTER
+                    line_height_multiple: 1
+                    text_list {
+                    }
+                  }
+                  strikethrough_style {
+                  }
+                }
+                shadow {
+                  angle: 315.00000247078003
+                  offset: 5.6568542494923806
+                  color {
+                    alpha: 1
+                  }
+                  opacity: 1
+                }
+                rtf_data: "{\\rtf1\\ansi\\ansicpg1252\\cocoartf2907\n\\cocoatextscaling0\\cocoaplatform0{\\fonttbl\\f0\\fswiss\\fcharset0 Helvetica-Bold;\\f1\\fswiss\\fcharset0 Helvetica;\\f2\\fswiss\\fcharset0 Arial-ItalicMT;\n}\n{\\colortbl;\\red255\\green255\\blue255;}\n{\\*\\expandedcolortbl;;}\n\\pard\\qc\\partightenfactor0\n\n\\f0\\b\\fs170 \\cf1 \\expnd0\\expndtw0\\kerning0\nCome alive in the name of Jesus\n\\f1\\b0\\fs24 \\cf0 \\kerning1\\expnd0\\expndtw0 \\\n\\pard\\qc\\partightenfactor0\n\n\\f2\\i\\fs140 \\cf1 \\expnd0\\expndtw0\\kerning0\nStehe auf im Namen Jesu\n\\f1\\i0\\fs24 \\cf0 \\kerning1\\expnd0\\expndtw0 \\\n\\pard\\qc\\partightenfactor0\n\n\\fs20 \\cf1 \\expnd0\\expndtw0\\kerning0\n\\\'a0\n\\fs24 \\cf0 \\kerning1\\expnd0\\expndtw0 \\\n\\pard\\qc\\partightenfactor0\n\n\\f0\\b\\fs170 \\cf1 \\expnd0\\expndtw0\\kerning0\nCome alive in the name of Jesus\n\\f1\\b0\\fs24 \\cf0 \\kerning1\\expnd0\\expndtw0 \\\n\\pard\\qc\\partightenfactor0\n\n\\f2\\i\\fs140 \\cf1 \\expnd0\\expndtw0\\kerning0\nStehe auf im Namen Jesu}"
+                vertical_alignment: VERTICAL_ALIGNMENT_BOTTOM
+                margins {
+                }
+                is_superscript_standardized: true
+                transformDelimiter: "  \342\200\242  "
+                chord_pro {
+                  color {
+                    red: 0.993
+                    green: 0.76
+                    blue: 0.032
+                    alpha: 1
+                  }
+                }
+              }
+              text_line_mask {
+                enabled: true
+                height_offset: 3
+              }
+            }
+            info: 3
+            text_scroller {
+              scroll_rate: 0.5
+              should_repeat: true
+              repeat_distance: 0.052083333333333336
+            }
+          }
+          background_color {
+            alpha: 1
+          }
+          size {
+            width: 1920
+            height: 1080
+          }
+          uuid {
+            string: "BBBEC643-89DF-4486-9C77-B48EDB2547AC"
+          }
+        }
+        chord_chart {
+          platform: PLATFORM_MACOS
+        }
+      }
+    }
+  }
+  isEnabled: true
+}
+cues {
+  uuid {
+    string: "92F540F1-BCA2-4AF7-9330-74FECE56978C"
+  }
+  hot_key {
+    code: KEY_CODE_ANSI_V
+  }
+  actions {
+    uuid {
+      string: "E324F32F-6A15-439D-8D80-1CB4304EEE35"
+    }
+    isEnabled: true
+    type: ACTION_TYPE_PRESENTATION_SLIDE
+    slide {
+      presentation {
+        base_slide {
+          elements {
+            element {
+              uuid {
+                string: "60DC8DB3-02D1-43B8-B3AD-0C98375B08D7"
+              }
+              name: "TextBox"
+              bounds {
+                origin {
+                }
+                size {
+                  width: 1920
+                  height: 890
+                }
+              }
+              rotation: 360
+              opacity: 1
+              path {
+                closed: true
+                points {
+                  point {
+                  }
+                  q0 {
+                  }
+                  q1 {
+                  }
+                }
+                points {
+                  point {
+                    x: 1
+                  }
+                  q0 {
+                    x: 1
+                  }
+                  q1 {
+                    x: 1
+                  }
+                }
+                points {
+                  point {
+                    x: 1
+                    y: 1
+                  }
+                  q0 {
+                    x: 1
+                    y: 1
+                  }
+                  q1 {
+                    x: 1
+                    y: 1
+                  }
+                }
+                points {
+                  point {
+                    y: 1
+                  }
+                  q0 {
+                    y: 1
+                  }
+                  q1 {
+                    y: 1
+                  }
+                }
+                shape {
+                  type: TYPE_RECTANGLE
+                }
+              }
+              fill {
+                color {
+                  alpha: 1
+                }
+                enable: true
+              }
+              stroke {
+                color {
+                  alpha: 1
+                }
+              }
+              shadow {
+                color {
+                }
+              }
+              feather {
+              }
+              text {
+                attributes {
+                  font {
+                    name: "HelveticaNeue"
+                    size: 42
+                    family: "Helvetica Neue"
+                  }
+                  text_solid_fill {
+                    red: 1
+                    green: 1
+                    blue: 1
+                    alpha: 1
+                  }
+                  underline_style {
+                  }
+                  paragraph_style {
+                    alignment: ALIGNMENT_CENTER
+                    line_height_multiple: 1
+                    text_list {
+                    }
+                  }
+                  strikethrough_style {
+                  }
+                }
+                shadow {
+                  angle: 315.00000247078003
+                  offset: 5.6568542494923806
+                  color {
+                    alpha: 1
+                  }
+                  opacity: 1
+                }
+                rtf_data: "{\\rtf1\\ansi\\ansicpg1252\\cocoartf2907\n\\cocoatextscaling0\\cocoaplatform0{\\fonttbl\\f0\\fswiss\\fcharset0 Helvetica-Bold;\\f1\\fswiss\\fcharset0 Helvetica;\\f2\\fswiss\\fcharset0 Arial-ItalicMT;\n}\n{\\colortbl;\\red255\\green255\\blue255;}\n{\\*\\expandedcolortbl;;}\n\\pard\\qc\\partightenfactor0\n\n\\f0\\b\\fs170 \\cf1 \\expnd0\\expndtw0\\kerning0\nThis is a house of worship\n\\f1\\b0\\fs24 \\cf0 \\kerning1\\expnd0\\expndtw0 \\\n\\pard\\qc\\partightenfactor0\n\n\\f2\\i\\fs140 \\cf1 \\expnd0\\expndtw0\\kerning0\nDies ist ein Haus der Anbetung\n\\f1\\i0\\fs24 \\cf0 \\kerning1\\expnd0\\expndtw0 \\\n\\pard\\qc\\partightenfactor0\n\n\\fs20 \\cf1 \\expnd0\\expndtw0\\kerning0\n\\\'a0\n\\fs24 \\cf0 \\kerning1\\expnd0\\expndtw0 \\\n\\pard\\qc\\partightenfactor0\n\n\\f0\\b\\fs170 \\cf1 \\expnd0\\expndtw0\\kerning0\nThis is a place of praise\n\\f1\\b0\\fs24 \\cf0 \\kerning1\\expnd0\\expndtw0 \\\n\\pard\\qc\\partightenfactor0\n\n\\f2\\i\\fs140 \\cf1 \\expnd0\\expndtw0\\kerning0\nDies ist ein Ort der Ehrung}"
+                vertical_alignment: VERTICAL_ALIGNMENT_BOTTOM
+                margins {
+                }
+                is_superscript_standardized: true
+                transformDelimiter: "  \342\200\242  "
+                chord_pro {
+                  color {
+                    red: 0.993
+                    green: 0.76
+                    blue: 0.032
+                    alpha: 1
+                  }
+                }
+              }
+              text_line_mask {
+                enabled: true
+                height_offset: 3
+              }
+            }
+            info: 3
+            text_scroller {
+              scroll_rate: 0.5
+              should_repeat: true
+              repeat_distance: 0.052083333333333336
+            }
+          }
+          background_color {
+            alpha: 1
+          }
+          size {
+            width: 1920
+            height: 1080
+          }
+          uuid {
+            string: "DA764A81-C95C-444B-8EED-E37A4E0183FF"
+          }
+        }
+        chord_chart {
+          platform: PLATFORM_MACOS
+        }
+      }
+    }
+  }
+  isEnabled: true
+}
+cues {
+  uuid {
+    string: "F5DCAAAF-63DA-439D-A2D9-4CEC7E47A0D1"
+  }
+  hot_key {
+  }
+  actions {
+    uuid {
+      string: "ABF6BA93-6F5C-413B-9E37-BF428FAE571F"
+    }
+    isEnabled: true
+    type: ACTION_TYPE_PRESENTATION_SLIDE
+    slide {
+      presentation {
+        base_slide {
+          elements {
+            element {
+              uuid {
+                string: "956E64CF-830B-4621-86CE-6566B88CB8A5"
+              }
+              name: "TextBox"
+              bounds {
+                origin {
+                }
+                size {
+                  width: 1920
+                  height: 890
+                }
+              }
+              rotation: 360
+              opacity: 1
+              path {
+                closed: true
+                points {
+                  point {
+                  }
+                  q0 {
+                  }
+                  q1 {
+                  }
+                }
+                points {
+                  point {
+                    x: 1
+                  }
+                  q0 {
+                    x: 1
+                  }
+                  q1 {
+                    x: 1
+                  }
+                }
+                points {
+                  point {
+                    x: 1
+                    y: 1
+                  }
+                  q0 {
+                    x: 1
+                    y: 1
+                  }
+                  q1 {
+                    x: 1
+                    y: 1
+                  }
+                }
+                points {
+                  point {
+                    y: 1
+                  }
+                  q0 {
+                    y: 1
+                  }
+                  q1 {
+                    y: 1
+                  }
+                }
+                shape {
+                  type: TYPE_RECTANGLE
+                }
+              }
+              fill {
+                color {
+                  alpha: 1
+                }
+                enable: true
+              }
+              stroke {
+                color {
+                  alpha: 1
+                }
+              }
+              shadow {
+                color {
+                }
+              }
+              feather {
+              }
+              text {
+                attributes {
+                  font {
+                    name: "HelveticaNeue"
+                    size: 42
+                    family: "Helvetica Neue"
+                  }
+                  text_solid_fill {
+                    red: 1
+                    green: 1
+                    blue: 1
+                    alpha: 1
+                  }
+                  underline_style {
+                  }
+                  paragraph_style {
+                    alignment: ALIGNMENT_CENTER
+                    line_height_multiple: 1
+                    text_list {
+                    }
+                  }
+                  strikethrough_style {
+                  }
+                }
+                shadow {
+                  angle: 315.00000247078003
+                  offset: 5.6568542494923806
+                  color {
+                    alpha: 1
+                  }
+                  opacity: 1
+                }
+                rtf_data: "{\\rtf1\\ansi\\ansicpg1252\\cocoartf2907\n\\cocoatextscaling0\\cocoaplatform0{\\fonttbl\\f0\\fswiss\\fcharset0 Helvetica-Bold;\\f1\\fswiss\\fcharset0 Helvetica;\\f2\\fswiss\\fcharset0 Arial-ItalicMT;\n}\n{\\colortbl;\\red255\\green255\\blue255;}\n{\\*\\expandedcolortbl;;}\n\\pard\\qc\\partightenfactor0\n\n\\f0\\b\\fs170 \\cf1 \\expnd0\\expndtw0\\kerning0\nYour Kingdom triumphs over\n\\f1\\b0\\fs24 \\cf0 \\kerning1\\expnd0\\expndtw0 \\\n\\pard\\qc\\partightenfactor0\n\n\\f2\\i\\fs140 \\cf1 \\expnd0\\expndtw0\\kerning0\nDein K\\\'f6nigreich triumphiert\n\\f1\\i0\\fs24 \\cf0 \\kerning1\\expnd0\\expndtw0 \\\n\\pard\\qc\\partightenfactor0\n\n\\fs20 \\cf1 \\expnd0\\expndtw0\\kerning0\n\\\'a0\n\\fs24 \\cf0 \\kerning1\\expnd0\\expndtw0 \\\n\\pard\\qc\\partightenfactor0\n\n\\f0\\b\\fs170 \\cf1 \\expnd0\\expndtw0\\kerning0\nEven the coldest grave\n\\f1\\b0\\fs24 \\cf0 \\kerning1\\expnd0\\expndtw0 \\\n\\pard\\qc\\partightenfactor0\n\n\\f2\\i\\fs140 \\cf1 \\expnd0\\expndtw0\\kerning0\nAuch \\\'fcber dem k\\\'e4ltesten Grab}"
+                vertical_alignment: VERTICAL_ALIGNMENT_BOTTOM
+                margins {
+                }
+                is_superscript_standardized: true
+                transformDelimiter: "  \342\200\242  "
+                chord_pro {
+                  color {
+                    red: 0.993
+                    green: 0.76
+                    blue: 0.032
+                    alpha: 1
+                  }
+                }
+              }
+              text_line_mask {
+                enabled: true
+                height_offset: 3
+              }
+            }
+            info: 3
+            text_scroller {
+              scroll_rate: 0.5
+              should_repeat: true
+              repeat_distance: 0.052083333333333336
+            }
+          }
+          background_color {
+            alpha: 1
+          }
+          size {
+            width: 1920
+            height: 1080
+          }
+          uuid {
+            string: "C5A305BD-5D51-4805-98CA-528D37839E6A"
+          }
+        }
+        chord_chart {
+          platform: PLATFORM_MACOS
+        }
+      }
+    }
+  }
+  isEnabled: true
+}
+cues {
+  uuid {
+    string: "C1B46949-F853-4C85-842C-4DEA18366A0C"
+  }
+  hot_key {
+  }
+  actions {
+    uuid {
+      string: "49417B31-25F2-4B62-97E5-C7963180AD19"
+    }
+    isEnabled: true
+    type: ACTION_TYPE_PRESENTATION_SLIDE
+    slide {
+      presentation {
+        base_slide {
+          elements {
+            element {
+              uuid {
+                string: "EEC1ECD9-D63A-4395-8385-F888FCA80A0B"
+              }
+              name: "TextBox"
+              bounds {
+                origin {
+                }
+                size {
+                  width: 1920
+                  height: 890
+                }
+              }
+              rotation: 360
+              opacity: 1
+              path {
+                closed: true
+                points {
+                  point {
+                  }
+                  q0 {
+                  }
+                  q1 {
+                  }
+                }
+                points {
+                  point {
+                    x: 1
+                  }
+                  q0 {
+                    x: 1
+                  }
+                  q1 {
+                    x: 1
+                  }
+                }
+                points {
+                  point {
+                    x: 1
+                    y: 1
+                  }
+                  q0 {
+                    x: 1
+                    y: 1
+                  }
+                  q1 {
+                    x: 1
+                    y: 1
+                  }
+                }
+                points {
+                  point {
+                    y: 1
+                  }
+                  q0 {
+                    y: 1
+                  }
+                  q1 {
+                    y: 1
+                  }
+                }
+                shape {
+                  type: TYPE_RECTANGLE
+                }
+              }
+              fill {
+                color {
+                  alpha: 1
+                }
+                enable: true
+              }
+              stroke {
+                color {
+                  alpha: 1
+                }
+              }
+              shadow {
+                color {
+                }
+              }
+              feather {
+              }
+              text {
+                attributes {
+                  font {
+                    name: "HelveticaNeue"
+                    size: 42
+                    family: "Helvetica Neue"
+                  }
+                  text_solid_fill {
+                    red: 1
+                    green: 1
+                    blue: 1
+                    alpha: 1
+                  }
+                  underline_style {
+                  }
+                  paragraph_style {
+                    alignment: ALIGNMENT_CENTER
+                    line_height_multiple: 1
+                    text_list {
+                    }
+                  }
+                  strikethrough_style {
+                  }
+                }
+                shadow {
+                  angle: 315.00000247078003
+                  offset: 5.6568542494923806
+                  color {
+                    alpha: 1
+                  }
+                  opacity: 1
+                }
+                rtf_data: "{\\rtf1\\ansi\\ansicpg1252\\cocoartf2907\n\\cocoatextscaling0\\cocoaplatform0{\\fonttbl\\f0\\fswiss\\fcharset0 Helvetica-Bold;\\f1\\fswiss\\fcharset0 Helvetica;\\f2\\fswiss\\fcharset0 Arial-ItalicMT;\n}\n{\\colortbl;\\red255\\green255\\blue255;}\n{\\*\\expandedcolortbl;;}\n\\pard\\qc\\partightenfactor0\n\n\\f0\\b\\fs170 \\cf1 \\expnd0\\expndtw0\\kerning0\nThis is a house of miracles\n\\f1\\b0\\fs24 \\cf0 \\kerning1\\expnd0\\expndtw0 \\\n\\pard\\qc\\partightenfactor0\n\n\\f2\\i\\fs140 \\cf1 \\expnd0\\expndtw0\\kerning0\nDies ist ein Haus der Wunder\n\\f1\\i0\\fs24 \\cf0 \\kerning1\\expnd0\\expndtw0 \\\n\\pard\\qc\\partightenfactor0\n\n\\fs20 \\cf1 \\expnd0\\expndtw0\\kerning0\n\\\'a0\n\\fs24 \\cf0 \\kerning1\\expnd0\\expndtw0 \\\n\\pard\\qc\\partightenfactor0\n\n\\f0\\b\\fs170 \\cf1 \\expnd0\\expndtw0\\kerning0\nWe bring everything to the feet of Jesus\n\\f1\\b0\\fs24 \\cf0 \\kerning1\\expnd0\\expndtw0 \\\n\\pard\\qc\\partightenfactor0\n\n\\f2\\i\\fs140 \\cf1 \\expnd0\\expndtw0\\kerning0\nWir legen alles an die F\\\'fc\\\'dfe Jesu}"
+                vertical_alignment: VERTICAL_ALIGNMENT_BOTTOM
+                margins {
+                }
+                is_superscript_standardized: true
+                transformDelimiter: "  \342\200\242  "
+                chord_pro {
+                  color {
+                    red: 0.993
+                    green: 0.76
+                    blue: 0.032
+                    alpha: 1
+                  }
+                }
+              }
+              text_line_mask {
+                enabled: true
+                height_offset: 3
+              }
+            }
+            info: 3
+            text_scroller {
+              scroll_rate: 0.5
+              should_repeat: true
+              repeat_distance: 0.052083333333333336
+            }
+          }
+          background_color {
+            alpha: 1
+          }
+          size {
+            width: 1920
+            height: 1080
+          }
+          uuid {
+            string: "DE8F5B2F-1BEB-4552-8C0C-ACCE676BAA0E"
+          }
+        }
+        chord_chart {
+          platform: PLATFORM_MACOS
+        }
+      }
+    }
+  }
+  isEnabled: true
+}
+cues {
+  uuid {
+    string: "B75F3BA9-39B1-4FDF-AF4F-0A8183326336"
+  }
+  hot_key {
+  }
+  actions {
+    uuid {
+      string: "1EED11DE-D5E9-4C12-A34E-28CB55ED03BD"
+    }
+    isEnabled: true
+    type: ACTION_TYPE_PRESENTATION_SLIDE
+    slide {
+      presentation {
+        base_slide {
+          elements {
+            element {
+              uuid {
+                string: "1CBE959A-5DD4-41C6-8D29-3A1293908491"
+              }
+              name: "TextBox"
+              bounds {
+                origin {
+                }
+                size {
+                  width: 1920
+                  height: 890
+                }
+              }
+              rotation: 360
+              opacity: 1
+              path {
+                closed: true
+                points {
+                  point {
+                  }
+                  q0 {
+                  }
+                  q1 {
+                  }
+                }
+                points {
+                  point {
+                    x: 1
+                  }
+                  q0 {
+                    x: 1
+                  }
+                  q1 {
+                    x: 1
+                  }
+                }
+                points {
+                  point {
+                    x: 1
+                    y: 1
+                  }
+                  q0 {
+                    x: 1
+                    y: 1
+                  }
+                  q1 {
+                    x: 1
+                    y: 1
+                  }
+                }
+                points {
+                  point {
+                    y: 1
+                  }
+                  q0 {
+                    y: 1
+                  }
+                  q1 {
+                    y: 1
+                  }
+                }
+                shape {
+                  type: TYPE_RECTANGLE
+                }
+              }
+              fill {
+                color {
+                  alpha: 1
+                }
+                enable: true
+              }
+              stroke {
+                color {
+                  alpha: 1
+                }
+              }
+              shadow {
+                color {
+                }
+              }
+              feather {
+              }
+              text {
+                attributes {
+                  font {
+                    name: "HelveticaNeue"
+                    size: 42
+                    family: "Helvetica Neue"
+                  }
+                  text_solid_fill {
+                    red: 1
+                    green: 1
+                    blue: 1
+                    alpha: 1
+                  }
+                  underline_style {
+                  }
+                  paragraph_style {
+                    alignment: ALIGNMENT_CENTER
+                    line_height_multiple: 1
+                    text_list {
+                    }
+                  }
+                  strikethrough_style {
+                  }
+                }
+                shadow {
+                  angle: 315.00000247078003
+                  offset: 5.6568542494923806
+                  color {
+                    alpha: 1
+                  }
+                  opacity: 1
+                }
+                rtf_data: "{\\rtf1\\ansi\\ansicpg1252\\cocoartf2907\n\\cocoatextscaling0\\cocoaplatform0{\\fonttbl\\f0\\fswiss\\fcharset0 Helvetica-Bold;\\f1\\fswiss\\fcharset0 Helvetica;\\f2\\fswiss\\fcharset0 Arial-ItalicMT;\n}\n{\\colortbl;\\red255\\green255\\blue255;}\n{\\*\\expandedcolortbl;;}\n\\pard\\qc\\partightenfactor0\n\n\\f0\\b\\fs170 \\cf1 \\expnd0\\expndtw0\\kerning0\nGod, I believe You\'re working\n\\f1\\b0\\fs24 \\cf0 \\kerning1\\expnd0\\expndtw0 \\\n\\pard\\qc\\partightenfactor0\n\n\\f2\\i\\fs140 \\cf1 \\expnd0\\expndtw0\\kerning0\nGott, ich glaube, Du wirkst\n\\f1\\i0\\fs24 \\cf0 \\kerning1\\expnd0\\expndtw0 \\\n\\pard\\qc\\partightenfactor0\n\n\\fs20 \\cf1 \\expnd0\\expndtw0\\kerning0\n\\\'a0\n\\fs24 \\cf0 \\kerning1\\expnd0\\expndtw0 \\\n\\pard\\qc\\partightenfactor0\n\n\\f0\\b\\fs170 \\cf1 \\expnd0\\expndtw0\\kerning0\nAll things for good\n\\f1\\b0\\fs24 \\cf0 \\kerning1\\expnd0\\expndtw0 \\\n\\pard\\qc\\partightenfactor0\n\n\\f2\\i\\fs140 \\cf1 \\expnd0\\expndtw0\\kerning0\nAlle Dinge zum Guten}"
+                vertical_alignment: VERTICAL_ALIGNMENT_BOTTOM
+                margins {
+                }
+                is_superscript_standardized: true
+                transformDelimiter: "  \342\200\242  "
+                chord_pro {
+                  color {
+                    red: 0.993
+                    green: 0.76
+                    blue: 0.032
+                    alpha: 1
+                  }
+                }
+              }
+              text_line_mask {
+                enabled: true
+                height_offset: 3
+              }
+            }
+            info: 3
+            text_scroller {
+              scroll_rate: 0.5
+              should_repeat: true
+              repeat_distance: 0.052083333333333336
+            }
+          }
+          background_color {
+            alpha: 1
+          }
+          size {
+            width: 1920
+            height: 1080
+          }
+          uuid {
+            string: "89BF3C98-8C40-4F38-B1F3-4966B5E8AFE1"
+          }
+        }
+        chord_chart {
+          platform: PLATFORM_MACOS
+        }
+      }
+    }
+  }
+  isEnabled: true
+}
+cues {
+  uuid {
+    string: "6334A6AA-B52C-4EAA-A54F-0AD3F4E71153"
+  }
+  hot_key {
+  }
+  actions {
+    uuid {
+      string: "0B902DAF-208C-4355-84F2-C2F08E21275C"
+    }
+    isEnabled: true
+    type: ACTION_TYPE_PRESENTATION_SLIDE
+    slide {
+      presentation {
+        base_slide {
+          elements {
+            element {
+              uuid {
+                string: "ECEB8A02-1863-4ACC-BE87-F84728E68676"
+              }
+              name: "TextBox"
+              bounds {
+                origin {
+                }
+                size {
+                  width: 1920
+                  height: 890
+                }
+              }
+              rotation: 360
+              opacity: 1
+              path {
+                closed: true
+                points {
+                  point {
+                  }
+                  q0 {
+                  }
+                  q1 {
+                  }
+                }
+                points {
+                  point {
+                    x: 1
+                  }
+                  q0 {
+                    x: 1
+                  }
+                  q1 {
+                    x: 1
+                  }
+                }
+                points {
+                  point {
+                    x: 1
+                    y: 1
+                  }
+                  q0 {
+                    x: 1
+                    y: 1
+                  }
+                  q1 {
+                    x: 1
+                    y: 1
+                  }
+                }
+                points {
+                  point {
+                    y: 1
+                  }
+                  q0 {
+                    y: 1
+                  }
+                  q1 {
+                    y: 1
+                  }
+                }
+                shape {
+                  type: TYPE_RECTANGLE
+                }
+              }
+              fill {
+                color {
+                  alpha: 1
+                }
+                enable: true
+              }
+              stroke {
+                color {
+                  alpha: 1
+                }
+              }
+              shadow {
+                color {
+                }
+              }
+              feather {
+              }
+              text {
+                attributes {
+                  font {
+                    name: "HelveticaNeue"
+                    size: 42
+                    family: "Helvetica Neue"
+                  }
+                  text_solid_fill {
+                    red: 1
+                    green: 1
+                    blue: 1
+                    alpha: 1
+                  }
+                  underline_style {
+                  }
+                  paragraph_style {
+                    alignment: ALIGNMENT_CENTER
+                    line_height_multiple: 1
+                    text_list {
+                    }
+                  }
+                  strikethrough_style {
+                  }
+                }
+                shadow {
+                  angle: 315.00000247078003
+                  offset: 5.6568542494923806
+                  color {
+                    alpha: 1
+                  }
+                  opacity: 1
+                }
+                rtf_data: "{\\rtf1\\ansi\\ansicpg1252\\cocoartf2907\n\\cocoatextscaling0\\cocoaplatform0{\\fonttbl\\f0\\fswiss\\fcharset0 Helvetica-Bold;\\f1\\fswiss\\fcharset0 Helvetica;\\f2\\fswiss\\fcharset0 Arial-ItalicMT;\n}\n{\\colortbl;\\red255\\green255\\blue255;}\n{\\*\\expandedcolortbl;;}\n\\pard\\qc\\partightenfactor0\n\n\\f0\\b\\fs170 \\cf1 \\expnd0\\expndtw0\\kerning0\nGod, I believe You\'re working\n\\f1\\b0\\fs24 \\cf0 \\kerning1\\expnd0\\expndtw0 \\\n\\pard\\qc\\partightenfactor0\n\n\\f2\\i\\fs140 \\cf1 \\expnd0\\expndtw0\\kerning0\nGott, ich glaube das Du wirkst\n\\f1\\i0\\fs24 \\cf0 \\kerning1\\expnd0\\expndtw0 \\\n\\pard\\qc\\partightenfactor0\n\n\\fs20 \\cf1 \\expnd0\\expndtw0\\kerning0\n\\\'a0\n\\fs24 \\cf0 \\kerning1\\expnd0\\expndtw0 \\\n\\pard\\qc\\partightenfactor0\n\n\\f0\\b\\fs170 \\cf1 \\expnd0\\expndtw0\\kerning0\nAll things for good\n\\f1\\b0\\fs24 \\cf0 \\kerning1\\expnd0\\expndtw0 \\\n\\pard\\qc\\partightenfactor0\n\n\\f2\\i\\fs140 \\cf1 \\expnd0\\expndtw0\\kerning0\nAlle Dinge zum Guten}"
+                vertical_alignment: VERTICAL_ALIGNMENT_BOTTOM
+                margins {
+                }
+                is_superscript_standardized: true
+                transformDelimiter: "  \342\200\242  "
+                chord_pro {
+                  color {
+                    red: 0.993
+                    green: 0.76
+                    blue: 0.032
+                    alpha: 1
+                  }
+                }
+              }
+              text_line_mask {
+                enabled: true
+                height_offset: 3
+              }
+            }
+            info: 3
+            text_scroller {
+              scroll_rate: 0.5
+              should_repeat: true
+              repeat_distance: 0.052083333333333336
+            }
+          }
+          background_color {
+            alpha: 1
+          }
+          size {
+            width: 1920
+            height: 1080
+          }
+          uuid {
+            string: "8BDF64F9-FF0E-42F5-84B7-AD2F61A8128E"
+          }
+        }
+        chord_chart {
+          platform: PLATFORM_MACOS
+        }
+      }
+    }
+  }
+  isEnabled: true
+}
+cues {
+  uuid {
+    string: "93622F44-6DB3-47BA-921F-FD74143F964D"
+  }
+  hot_key {
+    code: KEY_CODE_ANSI_B
+  }
+  actions {
+    uuid {
+      string: "30F027AC-4766-44D5-AE19-325E8AA1C7E5"
+    }
+    isEnabled: true
+    type: ACTION_TYPE_PRESENTATION_SLIDE
+    slide {
+      presentation {
+        base_slide {
+          elements {
+            element {
+              uuid {
+                string: "6EDA325B-601B-4243-8E3A-A4ADE0651AF5"
+              }
+              name: "TextBox"
+              bounds {
+                origin {
+                }
+                size {
+                  width: 1920
+                  height: 890
+                }
+              }
+              rotation: 360
+              opacity: 1
+              path {
+                closed: true
+                points {
+                  point {
+                  }
+                  q0 {
+                  }
+                  q1 {
+                  }
+                }
+                points {
+                  point {
+                    x: 1
+                  }
+                  q0 {
+                    x: 1
+                  }
+                  q1 {
+                    x: 1
+                  }
+                }
+                points {
+                  point {
+                    x: 1
+                    y: 1
+                  }
+                  q0 {
+                    x: 1
+                    y: 1
+                  }
+                  q1 {
+                    x: 1
+                    y: 1
+                  }
+                }
+                points {
+                  point {
+                    y: 1
+                  }
+                  q0 {
+                    y: 1
+                  }
+                  q1 {
+                    y: 1
+                  }
+                }
+                shape {
+                  type: TYPE_RECTANGLE
+                }
+              }
+              fill {
+                color {
+                  alpha: 1
+                }
+                enable: true
+              }
+              stroke {
+                color {
+                  alpha: 1
+                }
+              }
+              shadow {
+                color {
+                }
+              }
+              feather {
+              }
+              text {
+                attributes {
+                  font {
+                    name: "HelveticaNeue"
+                    size: 42
+                    family: "Helvetica Neue"
+                  }
+                  text_solid_fill {
+                    red: 1
+                    green: 1
+                    blue: 1
+                    alpha: 1
+                  }
+                  underline_style {
+                  }
+                  paragraph_style {
+                    alignment: ALIGNMENT_CENTER
+                    line_height_multiple: 1
+                    text_list {
+                    }
+                  }
+                  strikethrough_style {
+                  }
+                }
+                shadow {
+                  angle: 315.00000247078003
+                  offset: 5.6568542494923806
+                  color {
+                    alpha: 1
+                  }
+                  opacity: 1
+                }
+                rtf_data: "{\\rtf1\\ansi\\ansicpg1252\\cocoartf2907\n\\cocoatextscaling0\\cocoaplatform0{\\fonttbl\\f0\\fswiss\\fcharset0 Helvetica-Bold;\\f1\\fswiss\\fcharset0 Helvetica;\\f2\\fswiss\\fcharset0 Arial-ItalicMT;\n}\n{\\colortbl;\\red255\\green255\\blue255;}\n{\\*\\expandedcolortbl;;}\n\\pard\\qc\\partightenfactor0\n\n\\f0\\b\\fs170 \\cf1 \\expnd0\\expndtw0\\kerning0\nI still believe You\'re moving\n\\f1\\b0\\fs24 \\cf0 \\kerning1\\expnd0\\expndtw0 \\\n\\pard\\qc\\partightenfactor0\n\n\\f2\\i\\fs140 \\cf1 \\expnd0\\expndtw0\\kerning0\nIch glaube immer noch, dass Du bewegst\n\\f1\\i0\\fs24 \\cf0 \\kerning1\\expnd0\\expndtw0 \\\n\\pard\\qc\\partightenfactor0\n\n\\fs20 \\cf1 \\expnd0\\expndtw0\\kerning0\n\\\'a0\n\\fs24 \\cf0 \\kerning1\\expnd0\\expndtw0 \\\n\\pard\\qc\\partightenfactor0\n\n\\f0\\b\\fs170 \\cf1 \\expnd0\\expndtw0\\kerning0\nI still believe You\'re speaking\n\\f1\\b0\\fs24 \\cf0 \\kerning1\\expnd0\\expndtw0 \\\n\\pard\\qc\\partightenfactor0\n\n\\f2\\i\\fs140 \\cf1 \\expnd0\\expndtw0\\kerning0\nIch glaube immer noch, dass Du sprichst}"
+                vertical_alignment: VERTICAL_ALIGNMENT_BOTTOM
+                margins {
+                }
+                is_superscript_standardized: true
+                transformDelimiter: "  \342\200\242  "
+                chord_pro {
+                  color {
+                    red: 0.993
+                    green: 0.76
+                    blue: 0.032
+                    alpha: 1
+                  }
+                }
+              }
+              text_line_mask {
+                enabled: true
+                height_offset: 3
+              }
+            }
+            info: 3
+            text_scroller {
+              scroll_rate: 0.5
+              should_repeat: true
+              repeat_distance: 0.052083333333333336
+            }
+          }
+          background_color {
+            alpha: 1
+          }
+          size {
+            width: 1920
+            height: 1080
+          }
+          uuid {
+            string: "EF7C5AC6-9976-484E-8B2E-C6E88EDFC0AB"
+          }
+        }
+        chord_chart {
+          platform: PLATFORM_MACOS
+        }
+      }
+    }
+  }
+  isEnabled: true
+}
+cues {
+  uuid {
+    string: "34FF6803-CCCF-4AA7-911B-9D7D6B19C8F8"
+  }
+  hot_key {
+    code: KEY_CODE_ANSI_N
+  }
+  actions {
+    uuid {
+      string: "A42B08F2-4534-4AF0-8C0C-7605A5BD79C5"
+    }
+    isEnabled: true
+    type: ACTION_TYPE_PRESENTATION_SLIDE
+    slide {
+      presentation {
+        base_slide {
+          elements {
+            element {
+              uuid {
+                string: "7D96A05F-9F14-4CE9-B090-D0527281DB23"
+              }
+              name: "TextBox"
+              bounds {
+                origin {
+                }
+                size {
+                  width: 1920
+                  height: 890
+                }
+              }
+              rotation: 360
+              opacity: 1
+              path {
+                closed: true
+                points {
+                  point {
+                  }
+                  q0 {
+                  }
+                  q1 {
+                  }
+                }
+                points {
+                  point {
+                    x: 1
+                  }
+                  q0 {
+                    x: 1
+                  }
+                  q1 {
+                    x: 1
+                  }
+                }
+                points {
+                  point {
+                    x: 1
+                    y: 1
+                  }
+                  q0 {
+                    x: 1
+                    y: 1
+                  }
+                  q1 {
+                    x: 1
+                    y: 1
+                  }
+                }
+                points {
+                  point {
+                    y: 1
+                  }
+                  q0 {
+                    y: 1
+                  }
+                  q1 {
+                    y: 1
+                  }
+                }
+                shape {
+                  type: TYPE_RECTANGLE
+                }
+              }
+              fill {
+                color {
+                  alpha: 1
+                }
+                enable: true
+              }
+              stroke {
+                color {
+                  alpha: 1
+                }
+              }
+              shadow {
+                color {
+                }
+              }
+              feather {
+              }
+              text {
+                attributes {
+                  font {
+                    name: "HelveticaNeue"
+                    size: 42
+                    family: "Helvetica Neue"
+                  }
+                  text_solid_fill {
+                    red: 1
+                    green: 1
+                    blue: 1
+                    alpha: 1
+                  }
+                  underline_style {
+                  }
+                  paragraph_style {
+                    alignment: ALIGNMENT_CENTER
+                    line_height_multiple: 1
+                    text_list {
+                    }
+                  }
+                  strikethrough_style {
+                  }
+                }
+                shadow {
+                  angle: 315.00000247078003
+                  offset: 5.6568542494923806
+                  color {
+                    alpha: 1
+                  }
+                  opacity: 1
+                }
+                rtf_data: "{\\rtf1\\ansi\\ansicpg1252\\cocoartf2907\n\\cocoatextscaling0\\cocoaplatform0{\\fonttbl\\f0\\fswiss\\fcharset0 Helvetica-Bold;\\f1\\fswiss\\fcharset0 Helvetica;\\f2\\fswiss\\fcharset0 Arial-ItalicMT;\n}\n{\\colortbl;\\red255\\green255\\blue255;}\n{\\*\\expandedcolortbl;;}\n\\pard\\qc\\partightenfactor0\n\n\\f0\\b\\fs170 \\cf1 \\expnd0\\expndtw0\\kerning0\nI fix my eyes on Heaven\n\\f1\\b0\\fs24 \\cf0 \\kerning1\\expnd0\\expndtw0 \\\n\\pard\\qc\\partightenfactor0\n\n\\f2\\i\\fs140 \\cf1 \\expnd0\\expndtw0\\kerning0\nIch richte meine Augen auf zum Himmel\n\\f1\\i0\\fs24 \\cf0 \\kerning1\\expnd0\\expndtw0 \\\n\\pard\\qc\\partightenfactor0\n\n\\fs20 \\cf1 \\expnd0\\expndtw0\\kerning0\n\\\'a0\n\\fs24 \\cf0 \\kerning1\\expnd0\\expndtw0 \\\n\\pard\\qc\\partightenfactor0\n\n\\f0\\b\\fs170 \\cf1 \\expnd0\\expndtw0\\kerning0\nGod, I receive Your vision\n\\f1\\b0\\fs24 \\cf0 \\kerning1\\expnd0\\expndtw0 \\\n\\pard\\qc\\partightenfactor0\n\n\\f2\\i\\fs140 \\cf1 \\expnd0\\expndtw0\\kerning0\nGott, ich erhalte Deine Vision}"
+                vertical_alignment: VERTICAL_ALIGNMENT_BOTTOM
+                margins {
+                }
+                is_superscript_standardized: true
+                transformDelimiter: "  \342\200\242  "
+                chord_pro {
+                  color {
+                    red: 0.993
+                    green: 0.76
+                    blue: 0.032
+                    alpha: 1
+                  }
+                }
+              }
+              text_line_mask {
+                enabled: true
+                height_offset: 3
+              }
+            }
+            info: 3
+            text_scroller {
+              scroll_rate: 0.5
+              should_repeat: true
+              repeat_distance: 0.052083333333333336
+            }
+          }
+          background_color {
+            alpha: 1
+          }
+          size {
+            width: 1920
+            height: 1080
+          }
+          uuid {
+            string: "0C4BC481-354E-4D27-8D42-C27A2CA86D75"
+          }
+        }
+        chord_chart {
+          platform: PLATFORM_MACOS
+        }
+      }
+    }
+  }
+  isEnabled: true
+}
+cues {
+  uuid {
+    string: "99A50058-2ECA-4986-9900-A0BE2F2594C7"
+  }
+  hot_key {
+    code: KEY_CODE_ANSI_W
+  }
+  actions {
+    uuid {
+      string: "1D31147F-FE26-4522-B283-7F6C27D42009"
+    }
+    isEnabled: true
+    type: ACTION_TYPE_PRESENTATION_SLIDE
+    slide {
+      presentation {
+        base_slide {
+          elements {
+            element {
+              uuid {
+                string: "31238807-0E9D-4828-B45C-857741EE9BFA"
+              }
+              name: "TextBox"
+              bounds {
+                origin {
+                }
+                size {
+                  width: 1920
+                  height: 890
+                }
+              }
+              rotation: 360
+              opacity: 1
+              path {
+                closed: true
+                points {
+                  point {
+                  }
+                  q0 {
+                  }
+                  q1 {
+                  }
+                }
+                points {
+                  point {
+                    x: 1
+                  }
+                  q0 {
+                    x: 1
+                  }
+                  q1 {
+                    x: 1
+                  }
+                }
+                points {
+                  point {
+                    x: 1
+                    y: 1
+                  }
+                  q0 {
+                    x: 1
+                    y: 1
+                  }
+                  q1 {
+                    x: 1
+                    y: 1
+                  }
+                }
+                points {
+                  point {
+                    y: 1
+                  }
+                  q0 {
+                    y: 1
+                  }
+                  q1 {
+                    y: 1
+                  }
+                }
+                shape {
+                  type: TYPE_RECTANGLE
+                }
+              }
+              fill {
+                color {
+                  alpha: 1
+                }
+                enable: true
+              }
+              stroke {
+                color {
+                  alpha: 1
+                }
+              }
+              shadow {
+                color {
+                }
+              }
+              feather {
+              }
+              text {
+                attributes {
+                  font {
+                    name: "HelveticaNeue"
+                    size: 42
+                    family: "Helvetica Neue"
+                  }
+                  text_solid_fill {
+                    red: 1
+                    green: 1
+                    blue: 1
+                    alpha: 1
+                  }
+                  underline_style {
+                  }
+                  paragraph_style {
+                    alignment: ALIGNMENT_CENTER
+                    line_height_multiple: 1
+                    text_list {
+                    }
+                  }
+                  strikethrough_style {
+                  }
+                }
+                shadow {
+                  angle: 315.00000247078003
+                  offset: 5.6568542494923806
+                  color {
+                    alpha: 1
+                  }
+                  opacity: 1
+                }
+                rtf_data: "{\\rtf1\\ansi\\ansicpg1252\\cocoartf2907\n\\cocoatextscaling0\\cocoaplatform0{\\fonttbl\\f0\\fswiss\\fcharset0 Helvetica-Bold;\\f1\\fswiss\\fcharset0 Helvetica;\\f2\\fswiss\\fcharset0 Arial-ItalicMT;\n}\n{\\colortbl;\\red255\\green255\\blue255;}\n{\\*\\expandedcolortbl;;}\n\\pard\\qc\\partightenfactor0\n\n\\f0\\b\\fs170 \\cf1 \\expnd0\\expndtw0\\kerning0\nThis is a house of healing\n\\f1\\b0\\fs24 \\cf0 \\kerning1\\expnd0\\expndtw0 \\\n\\pard\\qc\\partightenfactor0\n\n\\f2\\i\\fs140 \\cf1 \\expnd0\\expndtw0\\kerning0\nDies ist ein Haus der Heilung\n\\f1\\i0\\fs24 \\cf0 \\kerning1\\expnd0\\expndtw0 \\\n\\pard\\qc\\partightenfactor0\n\n\\fs20 \\cf1 \\expnd0\\expndtw0\\kerning0\n\\\'a0\n\\fs24 \\cf0 \\kerning1\\expnd0\\expndtw0 \\\n\\pard\\qc\\partightenfactor0\n\n\\f0\\b\\fs170 \\cf1 \\expnd0\\expndtw0\\kerning0\nOur hearts are full of faith\n\\f1\\b0\\fs24 \\cf0 \\kerning1\\expnd0\\expndtw0 \\\n\\pard\\qc\\partightenfactor0\n\n\\f2\\i\\fs140 \\cf1 \\expnd0\\expndtw0\\kerning0\nUnsere Herzen sind voller Glaube}"
+                vertical_alignment: VERTICAL_ALIGNMENT_BOTTOM
+                margins {
+                }
+                is_superscript_standardized: true
+                transformDelimiter: "  \342\200\242  "
+                chord_pro {
+                  color {
+                    red: 0.993
+                    green: 0.76
+                    blue: 0.032
+                    alpha: 1
+                  }
+                }
+              }
+              text_line_mask {
+                enabled: true
+                height_offset: 3
+              }
+            }
+            info: 3
+            text_scroller {
+              scroll_rate: 0.5
+              should_repeat: true
+              repeat_distance: 0.052083333333333336
+            }
+          }
+          background_color {
+            alpha: 1
+          }
+          size {
+            width: 1920
+            height: 1080
+          }
+          uuid {
+            string: "49169FA1-AAFB-47FD-9B02-5E7A74297467"
+          }
+        }
+        chord_chart {
+          platform: PLATFORM_MACOS
+        }
+      }
+    }
+  }
+  isEnabled: true
+}
+ccli {
+  author: "Brandon Lake and Jacob Soote"
+  song_title: "House Of Miracles"
+  publisher: "Brandon Lake and Jacob Soote"
+  copyright_year: 2020
+  song_number: 7169458
+}
+timeline {
+  duration: 300
+}

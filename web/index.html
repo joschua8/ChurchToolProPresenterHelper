@@ -1,0 +1,1510 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Liederverwaltung</title>
+<style>
+:root {
+  --bg: #f6f5f2; --panel: #ffffff; --text: #1f1d1a; --muted: #6d6860; --line: #e3dfd8;
+  --accent: #2f5d8a; --accent-text: #ffffff; --accent-soft: #e5edf5;
+  --warn: #8a5a00; --warn-soft: #fbf0d9; --danger: #a2352b; --danger-soft: #f8e3e0;
+  --ok: #2d6a3e; --ok-soft: #e1f0e5; --code: #f1efea;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #171716; --panel: #212120; --text: #ecebe8; --muted: #a29e96; --line: #34332f;
+    --accent: #7fb0e0; --accent-text: #10161c; --accent-soft: #233140;
+    --warn: #e7b75d; --warn-soft: #3a2f19; --danger: #ef8b80; --danger-soft: #3d2320;
+    --ok: #86c79a; --ok-soft: #1f3324; --code: #1b1b1a;
+  }
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body { background: var(--bg); color: var(--text); font: 15px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif; }
+button, input, textarea, select { font: inherit; color: inherit; }
+header { display: flex; align-items: center; gap: 24px; padding: 0 20px; height: 56px; background: var(--panel); border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: 2; }
+header h1 { font-size: 17px; margin: 0; white-space: nowrap; }
+nav { display: flex; gap: 4px; height: 100%; }
+nav button { background: none; border: 0; border-bottom: 2px solid transparent; padding: 0 12px; cursor: pointer; color: var(--muted); height: 100%; }
+nav button.active { color: var(--text); border-bottom-color: var(--accent); font-weight: 600; }
+main { padding: 20px; max-width: 1280px; margin: 0 auto; }
+.tab[hidden] { display: none !important; }
+
+.btn { border: 1px solid var(--line); background: var(--panel); padding: 7px 14px; border-radius: 6px; cursor: pointer; }
+a.btn { color: inherit; text-decoration: none; display: inline-block; }
+.btn:hover { border-color: var(--muted); }
+.btn.primary { background: var(--accent); color: var(--accent-text); border-color: var(--accent); }
+.btn.danger { color: var(--danger); }
+.btn.danger.armed { background: var(--danger); color: #fff; border-color: var(--danger); }
+.btn:disabled { opacity: .5; cursor: default; }
+.btn-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+
+input[type=text], input[type=password], input[type=search], input[type=url], textarea {
+  width: 100%; padding: 8px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--panel);
+}
+input:focus, textarea:focus { outline: 2px solid var(--accent-soft); border-color: var(--accent); }
+label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 4px; }
+.field { margin-bottom: 14px; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; }
+.notice { padding: 10px 12px; border-radius: 6px; font-size: 14px; margin-bottom: 12px; }
+.notice.warn { background: var(--warn-soft); color: var(--warn); }
+.notice.error { background: var(--danger-soft); color: var(--danger); }
+.notice.ok { background: var(--ok-soft); color: var(--ok); }
+.muted { color: var(--muted); }
+.badge { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 10px; background: var(--code); color: var(--muted); vertical-align: middle; white-space: nowrap; }
+.badge.manual { background: var(--accent-soft); color: var(--accent); }
+.badge.missing { background: var(--warn-soft); color: var(--warn); }
+.badge.covered { background: var(--ok-soft); color: var(--ok); }
+
+/* Lieder */
+.library { display: grid; grid-template-columns: 360px 1fr; gap: 16px; height: calc(100vh - 96px); }
+.list-pane { display: flex; flex-direction: column; overflow: hidden; }
+.list-head { padding: 12px; border-bottom: 1px solid var(--line); }
+.filters { display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap; }
+.chip { border: 1px solid var(--line); background: none; border-radius: 14px; padding: 2px 10px; font-size: 13px; cursor: pointer; color: var(--muted); }
+.chip.active { background: var(--accent); border-color: var(--accent); color: var(--accent-text); }
+.song-list { list-style: none; margin: 0; padding: 0; overflow-y: auto; flex: 1; }
+.song-list li { padding: 8px 12px; border-bottom: 1px solid var(--line); cursor: pointer; }
+.song-list li:hover { background: var(--bg); }
+.song-list li.sel { background: var(--accent-soft); }
+.song-list .t { display: flex; gap: 6px; align-items: center; justify-content: space-between; }
+.song-list .t span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.song-list .a { font-size: 12px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.song-list .hit { font-size: 12px; color: var(--muted); font-style: italic; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.list-foot { padding: 8px 12px; border-top: 1px solid var(--line); font-size: 12px; color: var(--muted); }
+
+.detail-pane { overflow-y: auto; padding: 24px 28px; }
+.detail-pane h2 { margin: 0 0 4px; font-size: 24px; }
+.meta { color: var(--muted); font-size: 14px; margin-bottom: 16px; }
+.meta div { margin: 2px 0; }
+.sections { columns: 2 320px; column-gap: 32px; }
+.section { break-inside: avoid; margin-bottom: 18px; }
+.section h4 { margin: 0 0 4px; font-size: 12px; text-transform: uppercase; letter-spacing: .05em; color: var(--accent); }
+.section p { margin: 0; white-space: pre-wrap; }
+.section .alt { color: var(--muted); font-style: italic; }
+.empty { color: var(--muted); text-align: center; margin-top: 15vh; }
+mark { background: var(--warn-soft); color: inherit; }
+
+/* Editor */
+.editor { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.editor .panel { padding: 20px; }
+.editor textarea { min-height: 380px; resize: vertical; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 14px; }
+.help { font-size: 13px; color: var(--muted); background: var(--code); border-radius: 6px; padding: 10px 12px; margin-bottom: 14px; }
+.help code { font-size: 12px; }
+.help summary { cursor: pointer; }
+.order { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 14px; }
+.order .badge { font-size: 12px; }
+h3 { margin: 0 0 14px; font-size: 16px; }
+
+/* Import */
+.import { display: grid; grid-template-columns: 380px 1fr; gap: 16px; }
+/* Export */
+.exporter { display: grid; grid-template-columns: 300px 1fr 300px; gap: 16px; height: calc(100vh - 96px); }
+.exporter .list-pane .song-list li { display: flex; gap: 8px; align-items: flex-start; }
+.exporter .song-list li input { margin-top: 4px; flex: none; }
+.exporter .song-list li .info { min-width: 0; flex: 1; }
+.x-foot { padding: 12px; border-top: 1px solid var(--line); }
+.btn.small { padding: 4px 10px; font-size: 13px; }
+.preview-pane { display: flex; flex-direction: column; overflow: hidden; }
+.pv-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; padding: 14px 16px; border-bottom: 1px solid var(--line); }
+.slides { flex: 1; overflow-y: auto; padding: 16px; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(var(--thumb, 300px), 100%), 1fr)); gap: 14px; align-content: start; }
+.slides > p { grid-column: 1 / -1; }
+.slide-card { min-width: 0; }
+.slide-card .cap { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); margin-top: 5px; }
+.slide-card .cap i { width: 10px; height: 10px; border-radius: 2px; display: inline-block; border: 1px solid var(--line); }
+.slide-card .warn-tag { margin-left: auto; color: var(--danger); }
+.thumb { position: relative; width: 100%; aspect-ratio: 16 / 9; overflow: hidden; border-radius: 4px; border: 2px solid var(--grp, var(--line)); }
+.thumb.overflow { outline: 2px dashed var(--danger); outline-offset: 2px; }
+.stage { user-select: none; }
+.stage .frame { position: absolute; cursor: move; touch-action: none; z-index: 2; }
+.slides.show-box .stage .frame, .thumb:hover .stage .frame, .thumb.dragging .stage .frame { outline: calc(2px * var(--inv, 6)) dashed rgba(127, 176, 224, .9); }
+.stage .h { position: absolute; width: calc(12px * var(--inv, 6)); height: calc(12px * var(--inv, 6)); background: #7fb0e0;
+  border: calc(1.5px * var(--inv, 6)) solid #fff; border-radius: calc(2px * var(--inv, 6)); transform: translate(-50%, -50%); display: none; touch-action: none; }
+.thumb:hover .stage .h, .thumb.dragging .stage .h { display: block; }
+.h[data-h=nw] { left: 0; top: 0; cursor: nwse-resize; } .h[data-h=n] { left: 50%; top: 0; cursor: ns-resize; }
+.h[data-h=ne] { left: 100%; top: 0; cursor: nesw-resize; } .h[data-h=e] { left: 100%; top: 50%; cursor: ew-resize; }
+.h[data-h=se] { left: 100%; top: 100%; cursor: nwse-resize; } .h[data-h=s] { left: 50%; top: 100%; cursor: ns-resize; }
+.h[data-h=sw] { left: 0; top: 100%; cursor: nesw-resize; } .h[data-h=w] { left: 0; top: 50%; cursor: ew-resize; }
+.stage .guide { position: absolute; display: none; background: #ff5fa2; z-index: 3; pointer-events: none; }
+.stage .guide.gx { left: 960px; top: 0; height: 1080px; width: calc(2px * var(--inv, 6)); transform: translateX(-50%); }
+.stage .guide.gy { top: 540px; left: 0; width: 1920px; height: calc(2px * var(--inv, 6)); transform: translateY(-50%); }
+.thumb.snap-x .guide.gx, .thumb.snap-y .guide.gy { display: block; }
+.thumb .drag-info, .thumb .hk { position: absolute; z-index: 4; pointer-events: none; font: 11px/1.4 ui-monospace, Menlo, monospace; border-radius: 3px; }
+.thumb .drag-info { right: 6px; top: 6px; background: rgba(0, 0, 0, .8); color: #fff; padding: 1px 6px; display: none; }
+.thumb.dragging .drag-info { display: block; }
+.thumb .hk { left: 6px; top: 6px; background: #fff; color: #111; padding: 0 6px; font-weight: 700; box-shadow: 0 0 0 1px rgba(0,0,0,.4); }
+.hk-row { display: grid; grid-template-columns: 1fr 64px 28px; gap: 6px; margin-bottom: 6px; }
+.hk-row input, .hk-row select { padding: 4px 6px; border: 1px solid var(--line); border-radius: 6px; background: var(--panel); font-size: 13px; min-width: 0; }
+.hk-row select.dup { border-color: var(--danger); color: var(--danger); }
+.hk-row button { border: 1px solid var(--line); background: none; border-radius: 6px; cursor: pointer; color: var(--muted); }
+.stage { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; transform-origin: 0 0; }
+.stage .box { position: absolute; display: flex; flex-direction: column; overflow: hidden; }
+.stage .box .content { line-height: 1.2; }
+.stage .p { white-space: pre-wrap; overflow-wrap: break-word; }
+.style-pane { overflow-y: auto; }
+.style-pane form { padding: 0 16px; }
+fieldset { border: 0; border-top: 1px solid var(--line); margin: 0; padding: 12px 0 4px; }
+legend { font-size: 12px; text-transform: uppercase; letter-spacing: .05em; color: var(--accent); padding: 0 6px 0 0; }
+.st-row { display: grid; grid-template-columns: 1fr 120px; gap: 8px; align-items: center; margin-bottom: 8px; font-size: 13px; }
+.st-row > span { color: var(--muted); }
+.st-row input[type=number], .st-row select { width: 100%; padding: 4px 6px; border: 1px solid var(--line); border-radius: 6px; background: var(--panel); }
+.st-row input[type=color] { width: 100%; height: 28px; padding: 0 2px; border: 1px solid var(--line); border-radius: 6px; background: var(--panel); }
+.seg { display: flex; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+.seg button { flex: 1; border: 0; background: none; padding: 4px 0; font-size: 12px; cursor: pointer; color: var(--muted); }
+.seg button.on { background: var(--accent); color: var(--accent-text); }
+.toggles { display: flex; gap: 4px; }
+.toggles button { flex: 1; border: 1px solid var(--line); background: none; border-radius: 6px; padding: 3px 0; cursor: pointer; color: var(--muted); }
+.toggles button.on { background: var(--accent); color: var(--accent-text); border-color: var(--accent); }
+@media (max-width: 1100px) {
+  .exporter { grid-template-columns: 280px 1fr; height: auto; }
+  .exporter .list-pane, .preview-pane { height: calc(100vh - 96px); }
+  .style-pane { grid-column: 1 / -1; }
+}
+select { padding: 6px 8px; border: 1px solid var(--line); border-radius: 6px; background: var(--panel); }
+.import .panel { padding: 20px; }
+.log { background: var(--code); border-radius: 6px; padding: 10px 12px; font: 12px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; height: 52vh; overflow-y: auto; white-space: pre-wrap; }
+.log .e { color: var(--danger); } .log .w { color: var(--warn); } .log .o { color: var(--ok); }
+.progress { height: 6px; background: var(--code); border-radius: 3px; overflow: hidden; margin-bottom: 12px; }
+.progress div { height: 100%; width: 0; background: var(--accent); transition: width .3s; }
+details.token summary { cursor: pointer; font-size: 13px; color: var(--muted); margin-bottom: 10px; }
+.check { display: flex; gap: 8px; align-items: center; font-size: 14px; margin-bottom: 14px; color: var(--text); }
+
+/* Ablaufplan */
+.planner { display: grid; grid-template-columns: 300px 1fr 300px; gap: 16px; height: calc(100vh - 96px); }
+.planner .panel { min-height: 0; }
+.planner .list-pane .song-list li { display: block; }
+.ev-date { font-size: 12px; color: var(--muted); }
+.ct-box { padding: 12px; border-bottom: 1px solid var(--line); }
+.ct-box .field { margin-bottom: 8px; }
+.ct-box input { padding: 6px 8px; }
+.ct-user { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 13px; }
+.range { display: grid; grid-template-columns: 1fr 1fr auto; gap: 6px; margin-top: 8px; }
+.range input { width: 100%; min-width: 0; padding: 4px 6px; border: 1px solid var(--line); border-radius: 6px; background: var(--panel); font-size: 13px; }
+.plan-pane { display: flex; flex-direction: column; overflow: hidden; }
+.plan-list { list-style: none; margin: 0; padding: 8px 0; overflow-y: auto; flex: 1; }
+.plan-list li { display: grid; grid-template-columns: 22px 48px 1fr; gap: 8px; align-items: start; padding: 7px 16px; border-bottom: 1px solid var(--line); }
+.plan-list li.off > :not(:first-child) { opacity: .45; }
+.plan-list li.header { background: var(--code); }
+.plan-list li.header .ttl { font-weight: 700; }
+.plan-list input[type=checkbox] { margin-top: 4px; }
+.plan-list .time { font-size: 12px; color: var(--muted); padding-top: 2px; font-variant-numeric: tabular-nums; }
+.plan-list .ttl { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.plan-list .ttl span { overflow-wrap: anywhere; }
+.plan-list .sw { width: 10px; height: 10px; border-radius: 2px; flex: none; }
+.plan-list .sub { font-size: 12px; color: var(--muted); overflow-wrap: anywhere; }
+.match { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 4px; font-size: 12px; }
+.match .badge { font-size: 12px; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+.badge.danger { background: var(--danger-soft); color: var(--danger); }
+.linkbtn { border: 0; background: none; padding: 0; color: var(--accent); cursor: pointer; font-size: 12px; text-decoration: underline; }
+.pick { display: flex; gap: 6px; margin-top: 6px; }
+.pick[hidden] { display: none; }
+.pick input { padding: 4px 8px; font-size: 13px; }
+.plan-stats { display: flex; gap: 6px; flex-wrap: wrap; }
+.lib-order { list-style: none; margin: 0 0 8px; padding: 0; }
+.lib-order li { display: grid; grid-template-columns: 18px 1fr 26px 26px; gap: 4px; align-items: center; font-size: 13px; padding: 3px 0; }
+.lib-order li span:first-child { color: var(--muted); font-size: 12px; text-align: right; }
+.lib-order button { border: 1px solid var(--line); background: none; border-radius: 6px; cursor: pointer; color: var(--muted); padding: 0; height: 24px; }
+.lib-order button:disabled { opacity: .3; cursor: default; }
+.pl-pane { overflow-y: auto; }
+.pl-pane .inner { padding: 0 16px 16px; }
+@media (max-width: 1100px) {
+  .planner { grid-template-columns: 280px 1fr; height: auto; }
+  .planner .list-pane, .plan-pane { height: calc(100vh - 96px); }
+  .pl-pane { grid-column: 1 / -1; }
+}
+
+@media (max-width: 860px) {
+  header { gap: 10px; padding: 0 12px; } header h1 { display: none; }
+  nav { overflow-x: auto; scrollbar-width: none; } nav button { white-space: nowrap; padding: 0 9px; }
+  main { padding: 12px 16px; }
+  .library, .editor, .import, .grid2, .exporter, .planner { grid-template-columns: 1fr; height: auto; }
+  .planner .list-pane { height: 60vh; } .plan-pane { height: 75vh; }
+  .exporter .list-pane { height: 60vh; } .preview-pane { height: 75vh; }
+  .list-pane { max-height: 50vh; }
+  .detail-pane { padding: 16px; }
+}
+</style>
+</head>
+<body>
+<header>
+  <h1>Liederverwaltung</h1>
+  <nav>
+    <button data-tab="songs" class="active">Lieder</button>
+    <button data-tab="edit">Neues Lied</button>
+    <button data-tab="plan">Ablaufplan</button>
+    <button data-tab="import">Import</button>
+    <button data-tab="export">Export</button>
+  </nav>
+</header>
+
+<main>
+  <!-- ======================= Lieder ======================= -->
+  <section class="tab" id="tab-songs">
+    <div class="library">
+      <div class="panel list-pane">
+        <div class="list-head">
+          <input type="search" id="q" placeholder="Titel, Autor oder Liedtext suchen …" autocomplete="off">
+          <div class="filters" id="filters">
+            <button class="chip active" data-f="all">Alle</button>
+            <button class="chip" data-f="ct">ChurchTools</button>
+            <button class="chip" data-f="manual">Manuell</button>
+            <button class="chip" data-f="missing">Ohne .sng</button>
+          </div>
+        </div>
+        <ul class="song-list" id="list"></ul>
+        <div class="list-foot" id="count"></div>
+      </div>
+      <div class="panel detail-pane" id="detail"><p class="empty">Lied links auswählen.</p></div>
+    </div>
+  </section>
+
+  <!-- ======================= Erfassen ======================= -->
+  <section class="tab" id="tab-edit" hidden>
+    <div class="editor">
+      <div class="panel">
+        <h3 id="edit-title">Neues Lied per Freitext erfassen</h3>
+        <div id="edit-msg"></div>
+        <div class="field"><label for="f-title">Titel *</label><input type="text" id="f-title"></div>
+        <div class="grid2">
+          <div class="field"><label for="f-author">Autor</label><input type="text" id="f-author"></div>
+          <div class="field"><label for="f-ccli">CCLI-Nr.</label><input type="text" id="f-ccli" inputmode="numeric"></div>
+        </div>
+        <div class="field"><label for="f-copy">Copyright</label><input type="text" id="f-copy"></div>
+        <details class="help">
+          <summary>So wird der Text aufgeteilt</summary>
+          <ul style="margin:8px 0 0;padding-left:18px">
+            <li>Eine <b>Leerzeile</b> trennt Abschnitte (Folien).</li>
+            <li>Erste Zeile wie <code>Strophe 1</code>, <code>[Refrain]</code>, <code>Chorus:</code>, <code>Bridge</code>, <code>Intro</code>, <code>Schluss</code> → Abschnittsname.</li>
+            <li><code>1. Text …</code> am Anfang → Strophe 1.</li>
+            <li><code>Instrumental</code> / <code>Intro</code> allein in einem Block → leere Folie an dieser Stelle.</li>
+            <li>Nur <code>Refrain</code> ohne Text → Refrain wird an dieser Stelle wiederholt.</li>
+            <li>Blöcke ohne Namen werden fortlaufende Strophen; ein wortgleich wiederholter Block wird als Wiederholung erkannt.</li>
+          </ul>
+        </details>
+        <div class="field"><label for="f-text">Liedtext *</label>
+          <textarea id="f-text" spellcheck="false" placeholder="Strophe 1&#10;Erste Zeile&#10;Zweite Zeile&#10;&#10;Refrain&#10;Refrainzeile …&#10;&#10;Strophe 2&#10;…&#10;&#10;Refrain"></textarea>
+        </div>
+        <div class="btn-row">
+          <button class="btn primary" id="save">Speichern</button>
+          <button class="btn" id="cancel">Verwerfen</button>
+          <span class="muted" id="save-info" style="font-size:13px"></span>
+        </div>
+      </div>
+      <div class="panel">
+        <h3>Vorschau</h3>
+        <div id="pv-warn"></div>
+        <label>Reihenfolge (VerseOrder)</label>
+        <div class="order" id="pv-order"><span class="muted">–</span></div>
+        <div class="sections" id="pv-sections"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ======================= Ablaufplan ======================= -->
+  <section class="tab" id="tab-plan" hidden>
+    <div class="planner">
+      <!-- Termine -->
+      <div class="panel list-pane">
+        <div class="ct-box" id="ct-box"></div>
+        <div class="list-head">
+          <input type="search" id="ev-q" placeholder="Termine filtern …" autocomplete="off">
+          <div class="range">
+            <input type="date" id="ev-from" aria-label="Von">
+            <input type="date" id="ev-to" aria-label="Bis">
+            <button class="btn small" id="ev-reload" title="Termine neu laden">↻</button>
+          </div>
+        </div>
+        <ul class="song-list" id="ev-list"></ul>
+        <div class="list-foot" id="ev-count"></div>
+      </div>
+
+      <!-- Ablauf -->
+      <div class="panel plan-pane">
+        <div class="pv-head">
+          <div style="min-width:0"><h3 id="plan-title" style="margin:0">Ablaufplan</h3>
+            <div class="muted" id="plan-sub" style="font-size:13px"></div></div>
+          <div class="plan-stats" id="plan-stats"></div>
+        </div>
+        <div id="plan-msg" style="padding:0 16px"></div>
+        <ul class="plan-list" id="plan-list"><li style="display:block;border:0" class="muted">Links bei ChurchTools anmelden und einen Termin wählen.</li></ul>
+      </div>
+
+      <!-- Playlist -->
+      <div class="panel pl-pane">
+        <div class="pv-head"><h3 style="margin:0">ProPresenter-Playlist</h3><span class="muted" id="pl-saved" style="font-size:12px"></span></div>
+        <div class="inner">
+          <div class="field"><label for="pl-name">Name der Playlist</label><input type="text" id="pl-name"></div>
+          <button class="btn primary" id="pl-start" style="width:100%" disabled>.proplaylist herunterladen</button>
+          <div id="pl-msg" style="margin-top:8px"></div>
+          <p class="muted" style="font-size:12px">Lieder verweisen auf die Präsentationen, die schon in deiner ProPresenter-Bibliothek liegen (Zuordnung über den Namen) – sie werden nicht neu aus ChurchTools erzeugt. Importieren wie die Playlist aus ChurchTools.</p>
+
+          <fieldset><legend>Übernehmen</legend>
+            <label class="check" style="margin-bottom:6px;font-size:13px"><input type="checkbox" data-pl="include_normal"> Normale Ablaufpunkte als Kopfzeile</label>
+            <label class="check" style="margin-bottom:6px;font-size:13px"><input type="checkbox" data-pl="include_before"> Punkte vor Beginn</label>
+            <label class="check" style="margin-bottom:6px;font-size:13px"><input type="checkbox" data-pl="missing_as_header"> Fehlende Lieder als Kopfzeile mit Hinweis</label>
+            <label class="check" style="margin-bottom:6px;font-size:13px"><input type="checkbox" data-pl="fuzzy"> Ähnliche Namen automatisch zuordnen</label>
+          </fieldset>
+          <fieldset><legend>Farben der Kopfzeilen</legend>
+            <div class="st-row"><span>Überschrift</span><input type="color" data-pl="header_color"></div>
+            <div class="st-row"><span>Normaler Punkt</span><input type="color" data-pl="item_color"></div>
+          </fieldset>
+          <fieldset><legend>Bibliotheken (Reihenfolge)</legend>
+            <p class="muted" style="font-size:12px;margin:0 0 6px">Gibt es ein Lied in mehreren Bibliotheken, gewinnt die obere.</p>
+            <ul class="lib-order" id="pl-libs"></ul>
+          </fieldset>
+          <fieldset><legend>ProPresenter-Ordner</legend>
+            <input type="text" id="pl-root" placeholder="automatisch" style="font-size:12px">
+            <div class="muted" id="pl-root-info" style="font-size:12px;margin-top:4px"></div>
+          </fieldset>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ======================= Export ======================= -->
+  <section class="tab" id="tab-export" hidden>
+    <div class="exporter">
+      <!-- Auswahl -->
+      <div class="panel list-pane">
+        <div class="list-head">
+          <input type="search" id="x-q" placeholder="Lieder filtern …" autocomplete="off">
+          <div class="filters" id="x-filters">
+            <button class="chip active" data-f="all">Alle</button>
+            <button class="chip" data-f="ct">ChurchTools</button>
+            <button class="chip" data-f="manual">Manuell</button>
+            <button class="chip" data-f="sel">Ausgewählt</button>
+          </div>
+          <div class="btn-row" style="margin-top:10px">
+            <button class="btn small" id="x-all">Alle auswählen</button>
+            <button class="btn small" id="x-none">Alle abwählen</button>
+          </div>
+        </div>
+        <ul class="song-list" id="x-list"></ul>
+        <div class="x-foot">
+          <div class="muted" id="x-count" style="font-size:12px;margin-bottom:8px"></div>
+          <label class="check" style="margin-bottom:8px;font-size:13px"><input type="checkbox" id="x-json"> .json-Zwischendateien mitliefern</label>
+          <button class="btn primary" id="x-start" style="width:100%">Auswahl als .pro herunterladen</button>
+          <div id="x-msg" style="margin-top:8px"></div>
+        </div>
+      </div>
+
+      <!-- Vorschau -->
+      <div class="panel preview-pane">
+        <div class="pv-head">
+          <div><h3 id="pv-title" style="margin:0">Vorschau</h3>
+            <div class="muted" id="pv-notes" style="font-size:13px"></div></div>
+          <label class="muted" style="font-size:12px;margin:0;white-space:nowrap"><input type="checkbox" id="pv-box"> Textbox zeigen</label>
+          <label class="muted" style="font-size:12px;margin:0">Größe
+            <input type="range" id="pv-zoom" min="180" max="640" step="20" value="300"></label>
+        </div>
+        <div class="slides" id="pv-slides"><p class="muted">Lied in der Liste anklicken, um die Folien zu sehen.</p></div>
+      </div>
+
+      <!-- Formatierung -->
+      <div class="panel style-pane">
+        <div class="pv-head"><h3 style="margin:0">Formatierung</h3><span class="muted" id="st-saved" style="font-size:12px"></span></div>
+        <form id="st-form" autocomplete="off"></form>
+        <div class="btn-row" style="margin-top:12px">
+          <button class="btn small" id="st-reset">Auf Beispiel zurücksetzen</button>
+        </div>
+        <p class="muted" style="font-size:12px">Gilt für Vorschau, ZIP- und Einzel-Export. Wird automatisch gespeichert (<code>export_settings.json</code>).
+          Die Vorschau ist eine Annäherung – ProPresenter rendert Schrift minimal anders.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ======================= Import ======================= -->
+  <section class="tab" id="tab-import" hidden>
+    <div class="import">
+      <div class="panel">
+        <h3>Import aus ChurchTools</h3>
+        <p class="muted" style="font-size:13px;margin-top:-6px">Lädt alle .sng-Dateien in den Liederordner. Von Hand erfasste Lieder werden nie überschrieben.</p>
+        <div class="field"><label for="i-url">ChurchTools-Adresse</label><input type="url" id="i-url"></div>
+        <div class="field"><label for="i-user">Benutzername / E-Mail</label><input type="text" id="i-user" autocomplete="username"></div>
+        <div class="field"><label for="i-pass">Passwort</label><input type="password" id="i-pass" autocomplete="current-password"></div>
+        <div class="field" id="totp-field"><label for="i-totp">Zwei-Faktor-Code (nur falls aktiviert)</label><input type="text" id="i-totp" inputmode="numeric" autocomplete="one-time-code"></div>
+        <details class="token">
+          <summary>Stattdessen mit Login-Token anmelden</summary>
+          <div class="field"><input type="password" id="i-token" placeholder="Login-Token"></div>
+        </details>
+        <label class="check"><input type="checkbox" id="i-cat"> Unterordner pro Liedkategorie</label>
+        <div class="btn-row"><button class="btn primary" id="i-start">Import starten</button></div>
+        <p class="muted" style="font-size:12px;margin-bottom:0">Zugangsdaten werden nur an diesen lokalen Server und an ChurchTools geschickt und nicht gespeichert (Adresse und Benutzername merkt sich der Browser). Bist du im Tab „Ablaufplan“ schon angemeldet, können Passwort und Token leer bleiben.</p>
+      </div>
+      <div class="panel">
+        <h3>Fortschritt</h3>
+        <div class="progress"><div id="i-bar"></div></div>
+        <div id="i-summary"></div>
+        <div class="log" id="i-log"><span class="muted">Noch kein Import in dieser Sitzung.</span></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script>
+const $ = (s, el = document) => el.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const store = {
+  get(k) { try { return localStorage.getItem(k); } catch { return null; } },
+  set(k, v) { try { localStorage.setItem(k, v); } catch {} },
+};
+
+async function api(path, opts = {}) {
+  const res = await fetch(path, {
+    headers: opts.body ? {"Content-Type": "application/json"} : {},
+    ...opts,
+    body: opts.body ? JSON.stringify(opts.body) : undefined,
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+  return data;
+}
+
+/* ---------------- Tabs ---------------- */
+function showTab(name) {
+  document.querySelectorAll("nav button").forEach(b => b.classList.toggle("active", b.dataset.tab === name));
+  document.querySelectorAll(".tab").forEach(t => t.hidden = t.id !== "tab-" + name);
+  store.set("tab", name);
+  if (name === "export") openExportTab();
+  if (name === "plan") openPlanTab();
+}
+document.querySelectorAll("nav button").forEach(b => b.onclick = () => {
+  if (b.dataset.tab === "edit" && !editing.id && !dirty()) resetEditor();
+  showTab(b.dataset.tab);
+});
+
+/* ---------------- Liederliste ---------------- */
+let songs = [], missing = [], filter = "all", selected = null;
+
+async function loadSongs() {
+  const data = await api("/api/songs");
+  songs = data.songs.map(s => ({...s, kind: "song",
+    hay: (s.title + " " + (s.exportName || "") + " " + s.author + " " + s.sections.map(x => x.lines.join(" ")).join(" ")).toLowerCase()}));
+  missing = data.missing.map(m => ({...m, kind: "missing", id: "missing:" + m.ctId,
+    hay: (m.title + " " + m.author).toLowerCase()}));
+  renderList();
+  if (selected) select(selected, false);
+}
+
+function visible() {
+  const q = $("#q").value.trim().toLowerCase();
+  let items;
+  if (filter === "missing") items = missing;
+  else if (filter === "manual") items = songs.filter(s => s.manual);
+  else if (filter === "ct") items = songs.filter(s => !s.manual);
+  else items = songs.concat(missing.filter(m => !m.covered));
+  if (q) items = items.filter(s => q.split(/\s+/).every(w => s.hay.includes(w)));
+  return items.sort((a, b) => a.title.localeCompare(b.title, "de"));
+}
+
+function snippet(s, q) {
+  if (!q || s.kind !== "song" || s.title.toLowerCase().includes(q) || s.author.toLowerCase().includes(q)) return "";
+  for (const sec of s.sections) for (const line of sec.lines)
+    if (line.toLowerCase().includes(q)) return line;
+  return "";
+}
+
+function renderList() {
+  const q = $("#q").value.trim().toLowerCase();
+  const items = visible();
+  $("#list").innerHTML = items.map(s => {
+    let badge = "";
+    if (s.kind === "missing") badge = s.covered ? '<span class="badge covered">erfasst</span>' : '<span class="badge missing">ohne .sng</span>';
+    else if (s.manual) badge = '<span class="badge manual">manuell</span>';
+    const hit = snippet(s, q);
+    return `<li data-id="${esc(s.id)}" class="${s.id === selected ? "sel" : ""}">
+      <div class="t"><span>${esc(s.title)}</span>${badge}</div>
+      ${s.author ? `<div class="a">${esc(s.author)}</div>` : ""}
+      ${hit ? `<div class="hit">„${esc(hit)}“</div>` : ""}</li>`;
+  }).join("") || '<li class="muted" style="cursor:default">Keine Treffer.</li>';
+  const manual = songs.filter(s => s.manual).length;
+  const open = missing.filter(m => !m.covered).length;
+  const filtered = q || filter !== "all";
+  $("#count").textContent = `${songs.length} Lieder (${manual} manuell) · ${open} noch ohne Text` +
+    (filtered ? ` · ${items.length} angezeigt` : "");
+  renderExportList();
+}
+
+$("#list").onclick = e => {
+  const li = e.target.closest("li[data-id]"); if (!li) return;
+  select(li.dataset.id);
+  if (matchMedia("(max-width: 860px)").matches) $("#detail").scrollIntoView({behavior: "smooth"});
+};
+$("#q").oninput = renderList;
+$("#q").onkeydown = e => {
+  if (e.key === "Enter") { const first = $("#list li[data-id]"); if (first) select(first.dataset.id); }
+};
+$("#filters").onclick = e => {
+  const c = e.target.closest(".chip"); if (!c) return;
+  filter = c.dataset.f;
+  document.querySelectorAll(".chip").forEach(x => x.classList.toggle("active", x === c));
+  renderList();
+};
+
+function highlight(text) {
+  const q = $("#q").value.trim();
+  if (!q) return esc(text);
+  const words = q.split(/\s+/).filter(Boolean).map(w => w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
+  return esc(text).replace(new RegExp("(" + words.map(esc).join("|") + ")", "gi"), "<mark>$1</mark>");
+}
+
+function renderSections(sections, langCount = 1) {
+  return sections.map(sec => `<div class="section"><h4>${esc(sec.label)}</h4><p>${
+    sec.lines.map((l, i) => langCount > 1 && i % langCount ? `<span class="alt">${highlight(l)}</span>` : highlight(l)).join("\n")
+  }</p></div>`).join("");
+}
+
+function select(id, scroll = true) {
+  selected = id;
+  document.querySelectorAll("#list li").forEach(li => li.classList.toggle("sel", li.dataset.id === id));
+  const d = $("#detail");
+  const m = missing.find(x => x.id === id);
+  if (m) {
+    d.innerHTML = `<h2>${esc(m.title)}</h2>
+      <div class="meta">
+        ${m.author ? `<div>${esc(m.author)}</div>` : ""}
+        ${m.category ? `<div>Kategorie: ${esc(m.category)}</div>` : ""}
+      </div>
+      <div class="notice ${m.covered ? "ok" : "warn"}">${m.covered
+        ? "In ChurchTools ohne .sng-Datei – der Text wurde aber bereits von Hand erfasst."
+        : "Für dieses Lied gibt es in ChurchTools keine .sng-Datei. Du kannst den Text hier per Freitext erfassen."}</div>
+      <div class="btn-row">
+        ${m.covered ? "" : '<button class="btn primary" id="d-add">Text jetzt erfassen</button>'}
+        ${m.link ? `<a class="btn" href="${esc(m.link)}" target="_blank" rel="noopener">In ChurchTools öffnen</a>` : ""}
+      </div>`;
+    const add = $("#d-add");
+    if (add) add.onclick = () => { resetEditor({title: m.title, author: m.author}); showTab("edit"); $("#f-text").focus(); };
+    return;
+  }
+  const s = songs.find(x => x.id === id);
+  if (!s) { d.innerHTML = '<p class="empty">Lied links auswählen.</p>'; return; }
+  d.innerHTML = `<h2>${esc(s.title)} ${s.manual ? '<span class="badge manual">manuell erfasst</span>' : ""}</h2>
+    <div class="meta">
+      ${s.author ? `<div>${esc(s.author)}</div>` : ""}
+      ${s.ccli ? `<div>CCLI ${esc(s.ccli)}</div>` : ""}
+      ${s.copyright ? `<div>© ${esc(s.copyright)}</div>` : ""}
+      <div style="font-size:12px">Datei: ${esc(s.id)} · Export als: ${esc(s.exportName)}.pro</div>
+    </div>
+    <div class="btn-row" style="margin-bottom:18px">
+      <a class="btn" href="${exportUrl("pro", s.id)}">.pro herunterladen</a>
+      <a class="btn" href="${exportUrl("json", s.id)}" target="_blank" rel="noopener">.json ansehen</a>
+      <button class="btn" id="d-preview">Folienvorschau</button>
+      ${s.manual ? `<button class="btn" id="d-edit">Bearbeiten</button>
+      <button class="btn danger" id="d-del">Löschen</button>` : ""}</div>
+    <div class="sections">${renderSections(s.sections, s.langCount)}</div>`;
+  if (scroll) d.scrollTop = 0;
+  $("#d-preview").onclick = () => { showTab("export"); focusPreview(s.id); };
+  if (s.manual) {
+    $("#d-edit").onclick = async () => {
+      const full = await api("/api/songs/" + encodeURIComponent(s.id));
+      resetEditor({title: full.title, author: full.author, ccli: full.ccli, copyright: full.copyright, text: full.freetext}, s.id);
+      showTab("edit");
+    };
+    const del = $("#d-del");
+    del.onclick = async () => {
+      if (!del.classList.contains("armed")) {
+        del.classList.add("armed"); del.textContent = "Wirklich löschen?";
+        setTimeout(() => { del.classList.remove("armed"); del.textContent = "Löschen"; }, 4000);
+        return;
+      }
+      await api("/api/songs/" + encodeURIComponent(s.id), {method: "DELETE"});
+      selected = null;
+      $("#detail").innerHTML = '<p class="empty">Lied gelöscht.</p>';
+      loadSongs();
+    };
+  }
+}
+
+/* ---------------- Erfassen / Bearbeiten ---------------- */
+let editing = {id: null, initial: ""};
+const formFields = ["title", "author", "ccli", "copy", "text"];
+const formState = () => formFields.map(f => $("#f-" + f).value).join("\u0001");
+const dirty = () => formState() !== editing.initial;
+
+function resetEditor(values = {}, id = null) {
+  $("#f-title").value = values.title || "";
+  $("#f-author").value = values.author || "";
+  $("#f-ccli").value = values.ccli || "";
+  $("#f-copy").value = values.copyright || "";
+  $("#f-text").value = values.text || "";
+  editing = {id, initial: formState()};
+  $("#edit-title").textContent = id ? "Lied bearbeiten" : "Neues Lied per Freitext erfassen";
+  $("#edit-msg").innerHTML = "";
+  $("#save-info").textContent = "";
+  updatePreview();
+}
+
+let pvTimer;
+function updatePreview() {
+  clearTimeout(pvTimer);
+  pvTimer = setTimeout(async () => {
+    const text = $("#f-text").value;
+    if (!text.trim()) {
+      $("#pv-order").innerHTML = '<span class="muted">–</span>';
+      $("#pv-sections").innerHTML = '<p class="muted">Hier erscheint die Aufteilung in Abschnitte.</p>';
+      $("#pv-warn").innerHTML = "";
+      return;
+    }
+    const pv = await api("/api/preview", {method: "POST", body: {text}});
+    $("#pv-order").innerHTML = pv.order.map(l => `<span class="badge">${esc(l)}</span>`).join("");
+    $("#pv-warn").innerHTML = pv.warnings.map(w => `<div class="notice warn">${esc(w)}</div>`).join("");
+    const seen = new Set();
+    $("#pv-sections").innerHTML = pv.sections.map(sec => {
+      const rep = seen.has(sec.label); seen.add(sec.label);
+      return `<div class="section"><h4>${esc(sec.label)}${rep ? ' <span class="muted">(Wiederholung)</span>' : ""}</h4>
+        <p${rep ? ' class="muted"' : ""}>${esc(sec.lines.join("\n"))}</p></div>`;
+    }).join("");
+  }, 200);
+}
+$("#f-text").oninput = updatePreview;
+
+$("#save").onclick = async () => {
+  const body = {
+    title: $("#f-title").value, author: $("#f-author").value, ccli: $("#f-ccli").value,
+    copyright: $("#f-copy").value, text: $("#f-text").value,
+  };
+  $("#save").disabled = true;
+  try {
+    const res = editing.id
+      ? await api("/api/songs/" + encodeURIComponent(editing.id), {method: "PUT", body})
+      : await api("/api/songs", {method: "POST", body});
+    editing = {id: res.id, initial: formState()};
+    $("#edit-title").textContent = "Lied bearbeiten";
+    $("#edit-msg").innerHTML = `<div class="notice ok">Gespeichert als <b>${esc(res.id)}</b>.</div>` +
+      res.warnings.map(w => `<div class="notice warn">${esc(w)}</div>`).join("");
+    await loadSongs();
+    select(res.id);
+  } catch (err) {
+    $("#edit-msg").innerHTML = `<div class="notice error">${esc(err.message)}</div>`;
+  } finally {
+    $("#save").disabled = false;
+  }
+};
+$("#cancel").onclick = () => {
+  const id = editing.id;
+  resetEditor();
+  if (id) { showTab("songs"); select(id); }
+};
+
+/* ---------------- Export ---------------- */
+const exportUrl = (fmt, id) => `/api/export/${fmt}/${id.split("/").map(encodeURIComponent).join("/")}`;
+
+/* Auswahl */
+let xSel = new Set(), xFilter = "all", xFocus = null, xSelLoaded = false;
+
+function loadSelection() {
+  if (xSelLoaded) return;
+  xSelLoaded = true;
+  let saved = null;
+  try { saved = JSON.parse(store.get("export-sel") || "null"); } catch {}
+  const ids = new Set(songs.map(s => s.id));
+  xSel = Array.isArray(saved) ? new Set(saved.filter(id => ids.has(id))) : new Set(ids);  // erstes Mal: alle
+}
+const saveSelection = () => store.set("export-sel", JSON.stringify([...xSel]));
+
+function xVisible() {
+  const q = $("#x-q").value.trim().toLowerCase();
+  let items = songs;
+  if (xFilter === "ct") items = items.filter(s => !s.manual);
+  else if (xFilter === "manual") items = items.filter(s => s.manual);
+  else if (xFilter === "sel") items = items.filter(s => xSel.has(s.id));
+  if (q) items = items.filter(s => q.split(/\s+/).every(w => s.hay.includes(w)));
+  return items.slice().sort((a, b) => a.exportName.localeCompare(b.exportName, "de"));
+}
+
+function renderExportList() {
+  if (!songs.length) return;
+  loadSelection();
+  for (const id of [...xSel]) if (!songs.some(s => s.id === id)) xSel.delete(id);
+  const items = xVisible();
+  $("#x-list").innerHTML = items.map(s => `<li data-id="${esc(s.id)}" class="${s.id === xFocus ? "sel" : ""}">
+      <input type="checkbox" ${xSel.has(s.id) ? "checked" : ""} aria-label="${esc(s.title)} auswählen">
+      <div class="info"><div class="t"><span title="Exportname: ${esc(s.exportName)}.pro">${esc(s.exportName)}</span>${s.manual ? '<span class="badge manual">manuell</span>' : ""}</div>
+      ${s.author ? `<div class="a">${esc(s.author)}</div>` : ""}</div></li>`).join("")
+    || '<li class="muted" style="cursor:default">Keine Treffer.</li>';
+  const filtered = $("#x-q").value.trim() || xFilter !== "all";
+  $("#x-all").textContent = filtered ? "Angezeigte auswählen" : "Alle auswählen";
+  $("#x-none").textContent = filtered ? "Angezeigte abwählen" : "Alle abwählen";
+  $("#x-count").textContent = `${xSel.size} von ${songs.length} Liedern ausgewählt` + (filtered ? ` · ${items.length} angezeigt` : "");
+  $("#x-start").textContent = xSel.size ? `${xSel.size} ${xSel.size === 1 ? "Lied" : "Lieder"} als .pro herunterladen (ZIP)` : "Keine Lieder ausgewählt";
+  $("#x-start").disabled = !xSel.size;
+}
+
+$("#x-list").onclick = e => {
+  const li = e.target.closest("li[data-id]"); if (!li) return;
+  const id = li.dataset.id;
+  if (e.target.matches("input[type=checkbox]")) {
+    e.target.checked ? xSel.add(id) : xSel.delete(id);
+    saveSelection(); renderExportList();
+  } else {
+    focusPreview(id);
+  }
+};
+$("#x-q").oninput = renderExportList;
+$("#x-filters").onclick = e => {
+  const c = e.target.closest(".chip"); if (!c) return;
+  xFilter = c.dataset.f;
+  $("#x-filters").querySelectorAll(".chip").forEach(x => x.classList.toggle("active", x === c));
+  renderExportList();
+};
+$("#x-all").onclick = () => { xVisible().forEach(s => xSel.add(s.id)); saveSelection(); renderExportList(); };
+$("#x-none").onclick = () => { xVisible().forEach(s => xSel.delete(s.id)); saveSelection(); renderExportList(); };
+
+/* Formatierung */
+let style = null, styleDefaults = null, fonts = [];
+const STYLE_FORM = [
+  ["Folie", [
+    ["lines_per_slide", "Zeilen pro Folie", "number", {min: 1, max: 12}],
+    ["pairs_per_slide", "Zeilenpaare (zweisprachig)", "number", {min: 1, max: 6}],
+    ["background", "Hintergrund", "color"],
+  ]],
+  ["Liedtext", [
+    ["main.font", "Schriftart", "font"],
+    ["main.size", "Größe (pt)", "number", {min: 8, max: 300}],
+    ["main.color", "Farbe", "color"],
+    ["main", "Stil", "toggles"],
+  ]],
+  ["Übersetzung (2. Sprache)", [
+    ["translation.font", "Schriftart", "font"],
+    ["translation.size", "Größe (pt)", "number", {min: 8, max: 300}],
+    ["translation.color", "Farbe", "color"],
+    ["translation", "Stil", "toggles"],
+    ["pair_spacing", "Abstand zw. Paaren (pt)", "number", {min: 0, max: 200}],
+  ]],
+  ["Ausrichtung", [
+    ["align", "Horizontal", "seg", [["left", "Links"], ["center", "Mitte"], ["right", "Rechts"]]],
+    ["valign", "Vertikal", "seg", [["top", "Oben"], ["middle", "Mitte"], ["bottom", "Unten"]]],
+  ]],
+  ["Textbox (oder in der Vorschau ziehen)", [
+    ["margin_top", "Rand oben", "number", {min: 0, max: 1030}],
+    ["margin_bottom", "Rand unten", "number", {min: 0, max: 1030}],
+    ["margin_left", "Rand links", "number", {min: 0, max: 1870}],
+    ["margin_right", "Rand rechts", "number", {min: 0, max: 1870}],
+    ["box_fill", "Hintergrund füllen", "check"],
+    ["box_color", "Füllfarbe", "color"],
+    ["box_opacity", "Deckkraft (0–1)", "number", {min: 0, max: 1, step: 0.05}],
+  ]],
+  ["Effekte", [
+    ["shadow", "Textschatten", "check"],
+    ["shrink_to_fit", "Zu langen Text verkleinern", "check"],
+  ]],
+];
+const getPath = (obj, path) => path.split(".").reduce((o, k) => o[k], obj);
+function setPath(obj, path, value) {
+  const keys = path.split("."), last = keys.pop();
+  keys.reduce((o, k) => o[k], obj)[last] = value;
+}
+
+function buildStyleForm() {
+  $("#st-form").innerHTML = STYLE_FORM.map(([legend, rows]) => `<fieldset><legend>${esc(legend)}</legend>${rows.map(([key, label, type, opt]) => {
+    let input;
+    if (type === "number") input = `<input type="number" data-k="${key}" min="${opt.min}" max="${opt.max}" step="${opt.step || 1}">`;
+    else if (type === "color") input = `<input type="color" data-k="${key}">`;
+    else if (type === "check") input = `<input type="checkbox" data-k="${key}" style="justify-self:start">`;
+    else if (type === "font") input = `<select data-k="${key}">${fonts.map(f => `<option value="${esc(f.name)}" style="font-family:${esc(f.css)}">${esc(f.name)}</option>`).join("")}</select>`;
+    else if (type === "seg") input = `<div class="seg" data-k="${key}">${opt.map(([v, l]) => `<button type="button" data-v="${v}">${l}</button>`).join("")}</div>`;
+    else if (type === "toggles") input = `<div class="toggles">
+        <button type="button" data-k="${key}.bold" title="Fett"><b>F</b></button>
+        <button type="button" data-k="${key}.italic" title="Kursiv"><i>K</i></button>
+        <button type="button" data-k="${key}.uppercase" title="Großbuchstaben">AA</button></div>`;
+    return `<label class="st-row"><span>${esc(label)}</span>${input}</label>`;
+  }).join("")}</fieldset>`).join("") + `<fieldset><legend>Tastenkürzel (1. Folie jeder Gruppe)</legend>
+    <label class="st-row"><span>Tastenkürzel setzen</span><input type="checkbox" data-k="hotkeys_enabled" style="justify-self:start"></label>
+    <div id="hk-rows"></div>
+    <button type="button" class="btn small" id="hk-add">+ Gruppe</button>
+    <p class="muted" style="font-size:12px;margin:8px 0 0">„Chorus“ gilt auch für „Chorus 1“ und Refrain, „Interlude“ auch für Instrumental/Zwischenspiel,
+      „Outro“ auch für Ending/Schluss. Weitere Gruppen (z. B. „Chorus 2“) über „+ Gruppe“.</p></fieldset>`;
+}
+
+/* Tastenkürzel-Tabelle */
+const HK_KEYS = ["", ..."ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"];
+function renderHotkeyRows() {
+  const rows = Object.entries(style.hotkeys || {});
+  $("#hk-rows").innerHTML = rows.map(([name, key]) => `<div class="hk-row">
+      <input type="text" class="hk-name" value="${esc(name)}" placeholder="Gruppenname, z. B. Verse 6" aria-label="Gruppe">
+      <select class="hk-key" aria-label="Taste">${HK_KEYS.map(k => `<option value="${k}" ${k === key ? "selected" : ""}>${k || "–"}</option>`).join("")}</select>
+      <button type="button" class="hk-del" title="Zeile entfernen">×</button></div>`).join("");
+  markDuplicateKeys();
+}
+function markDuplicateKeys() {
+  const sels = [...document.querySelectorAll("#hk-rows .hk-key")];
+  const count = {};
+  sels.forEach(s => { if (s.value) count[s.value] = (count[s.value] || 0) + 1; });
+  sels.forEach(s => { const dup = s.value && count[s.value] > 1; s.classList.toggle("dup", dup); s.title = dup ? "Taste mehrfach vergeben" : ""; });
+}
+function readHotkeyRows() {
+  style.hotkeys = {};
+  document.querySelectorAll("#hk-rows .hk-row").forEach(row => {
+    const name = row.querySelector(".hk-name").value.trim().replace(/\s+/g, " ");
+    if (name) style.hotkeys[name] = row.querySelector(".hk-key").value;
+  });
+  markDuplicateKeys();
+  styleChanged();
+}
+
+function fillStyleForm() {
+  $("#st-form").querySelectorAll("input[data-k], select[data-k]").forEach(el => {
+    const v = getPath(style, el.dataset.k);
+    if (el.type === "checkbox") el.checked = v; else el.value = v;
+  });
+  $("#st-form").querySelectorAll(".seg").forEach(seg =>
+    seg.querySelectorAll("button").forEach(b => b.classList.toggle("on", b.dataset.v === getPath(style, seg.dataset.k))));
+  $("#st-form").querySelectorAll(".toggles button").forEach(b => b.classList.toggle("on", !!getPath(style, b.dataset.k)));
+}
+
+function styleChanged() {
+  fillStyleForm();
+  refreshPreview();
+  $("#st-saved").textContent = "Ändert …";
+  clearTimeout(styleChanged.t);
+  styleChanged.t = setTimeout(saveStyle, 500);
+}
+async function saveStyle() {
+  clearTimeout(styleChanged.t);
+  try {
+    const res = await api("/api/export/settings", {method: "PUT", body: style});
+    if (!drag) {  // während des Ziehens nicht mit dem (älteren) Serverstand überschreiben
+      style = res.style;  // vom Server bereinigt (Grenzen etc.)
+      fillStyleForm();
+    }
+    $("#st-saved").textContent = "Gespeichert ✓";
+  } catch (err) { $("#st-saved").textContent = "Speichern fehlgeschlagen: " + err.message; }
+}
+
+$("#st-form").addEventListener("input", e => {
+  const el = e.target.closest("[data-k]"); if (!el || el.tagName === "DIV") return;
+  let v = el.type === "checkbox" ? el.checked : el.value;
+  if (el.type === "number") { if (el.value === "") return; v = Number(el.value); }
+  setPath(style, el.dataset.k, v);
+  styleChanged();
+});
+$("#st-form").addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b) return;
+  if (b.id === "hk-add") {
+    $("#hk-rows").insertAdjacentHTML("beforeend", `<div class="hk-row"><input type="text" class="hk-name" placeholder="Gruppenname, z. B. Verse 6" aria-label="Gruppe">
+      <select class="hk-key" aria-label="Taste">${HK_KEYS.map(k => `<option value="${k}">${k || "–"}</option>`).join("")}</select>
+      <button type="button" class="hk-del" title="Zeile entfernen">×</button></div>`);
+    $("#hk-rows .hk-row:last-child .hk-name").focus();
+    return;
+  }
+  if (b.classList.contains("hk-del")) { b.closest(".hk-row").remove(); readHotkeyRows(); return; }
+  const seg = b.closest(".seg");
+  if (!seg && !b.dataset.k) return;
+  if (seg) setPath(style, seg.dataset.k, b.dataset.v);
+  else setPath(style, b.dataset.k, !getPath(style, b.dataset.k));
+  styleChanged();
+});
+$("#st-form").addEventListener("input", e => { if (e.target.closest(".hk-row")) readHotkeyRows(); });
+$("#st-reset").onclick = () => { style = structuredClone(styleDefaults); renderHotkeyRows(); styleChanged(); };
+
+/* Vorschau */
+let pvData = null;
+async function focusPreview(id) {
+  xFocus = id;
+  $("#x-list").querySelectorAll("li").forEach(li => li.classList.toggle("sel", li.dataset.id === id));
+  await refreshPreview(true);
+}
+async function refreshPreview(now = false) {
+  if (!xFocus || !style) return;
+  clearTimeout(refreshPreview.t);
+  const run = async () => {
+    try {
+      pvData = await api("/api/export/preview", {method: "POST", body: {id: xFocus, style}});
+      renderPreview();
+    } catch (err) {
+      $("#pv-slides").innerHTML = `<div class="notice error">${esc(err.message)}</div>`;
+    }
+  };
+  if (now) return run();
+  refreshPreview.t = setTimeout(run, 120);
+}
+
+const fontCss = name => (fonts.find(f => f.name === name) || {css: "Helvetica"}).css + ", Helvetica, Arial, sans-serif";
+function hexA(hex, a) {
+  const n = parseInt(hex.slice(1), 16);
+  return `rgba(${n >> 16},${(n >> 8) & 255},${n & 255},${a})`;
+}
+function paraStyle(ts) {
+  return `font-family:${fontCss(ts.font)};font-size:calc(${ts.size}px * var(--k,1));color:${ts.color};` +
+    `font-weight:${ts.bold ? 700 : 400};font-style:${ts.italic ? "italic" : "normal"};` +
+    (ts.uppercase ? "text-transform:uppercase;" : "");
+}
+
+const boxGeom = st => `left:${st.margin_left}px;top:${st.margin_top}px;` +
+  `width:${1920 - st.margin_left - st.margin_right}px;height:${1080 - st.margin_top - st.margin_bottom}px;`;
+const HANDLES = ["nw", "n", "ne", "e", "se", "s", "sw", "w"];
+
+function slideHtml(paras, st) {
+  const j = {top: "flex-start", middle: "center", bottom: "flex-end"}[st.valign];
+  const box = boxGeom(st) + `justify-content:${j};text-align:${st.align};` +
+    (st.box_fill ? `background:${hexA(st.box_color, st.box_opacity)};` : "") +
+    (st.shadow ? "text-shadow:4px 4px 0 #000;" : "");
+  const body = paras.map(p => p.kind === "spacer"
+    ? `<div class="p" style="font-size:calc(${st.pair_spacing}px * var(--k,1))">&nbsp;</div>`
+    : `<div class="p" style="${paraStyle(p.kind === "main" ? st.main : st.translation)}">${esc(p.text)}</div>`).join("");
+  return `<div class="stage" style="background:${st.background}"><div class="box" style="${box}"><div class="content">${body}</div></div>` +
+    `<div class="frame" style="${boxGeom(st)}" title="Ziehen zum Verschieben, Ecken/Kanten zum Ändern der Größe (Umschalt: ohne Einrasten)">` +
+    HANDLES.map(h => `<div class="h" data-h="${h}"></div>`).join("") + `</div><div class="guide gx"></div><div class="guide gy"></div></div>`;
+}
+
+function renderPreview() {
+  if (!pvData) return;
+  if (drag) { renderPreview.pending = true; return; }  // DOM nicht unter der Maus austauschen
+  renderPreview.pending = false;
+  const st = style;
+  $("#pv-title").textContent = pvData.exportName || pvData.title;
+  $("#pv-notes").textContent = `${pvData.notes} · Datei: ${pvData.exportName}.pro`;
+  const cards = [];
+  for (const g of pvData.groups)
+    g.slides.forEach((paras, i) => cards.push(`<div class="slide-card">
+      <div class="thumb" style="--grp:${g.color}">${slideHtml(paras, st)}${i === 0 && g.hotkey ? `<span class="hk" title="Tastenkürzel">${esc(g.hotkey)}</span>` : ""}<span class="drag-info"></span></div>
+      <div class="cap"><i style="background:${g.color}"></i>${esc(g.name)}${g.slides.length > 1 ? ` · ${i + 1}/${g.slides.length}` : ""}<span class="warn-tag"></span></div></div>`));
+  $("#pv-slides").innerHTML = cards.join("") || '<p class="muted">Dieses Lied hat keine Folien.</p>';
+  fitPreview();
+}
+
+// Folien auf Vorschaugröße skalieren; Überlauf markieren bzw. (wie ProPresenter) Schrift verkleinern.
+function fitPreview() {
+  document.querySelectorAll("#pv-slides .thumb").forEach(thumb => {
+    const stage = thumb.querySelector(".stage");
+    const scale = thumb.clientWidth / 1920;
+    stage.style.transform = `scale(${scale})`;
+    stage.style.setProperty("--inv", (1 / scale).toFixed(3));
+    const box = stage.querySelector(".box"), content = box.querySelector(".content");
+    content.style.setProperty("--k", 1);
+    let k = 1;
+    for (let i = 0; i < 4 && content.scrollHeight > box.clientHeight + 1; i++) {
+      if (!style.shrink_to_fit) break;
+      k *= box.clientHeight / content.scrollHeight;
+      content.style.setProperty("--k", k.toFixed(3));
+    }
+    const over = content.scrollHeight > box.clientHeight + 1;
+    thumb.classList.toggle("overflow", over);
+    thumb.parentElement.querySelector(".warn-tag").textContent =
+      over ? "passt nicht" : k < 0.999 ? `verkleinert ${Math.round(k * 100)} %` : "";
+  });
+}
+new ResizeObserver(() => fitPreview()).observe($("#pv-slides"));
+
+/* Textbox mit der Maus verschieben / Größe ändern (wirkt auf alle Folien) */
+let drag = null;
+const clamp = (v, lo, hi) => Math.min(Math.max(v, lo), hi);
+
+function applyBoxGeometry() {
+  const geom = boxGeom(style);
+  document.querySelectorAll("#pv-slides .stage").forEach(stage => {
+    const box = stage.querySelector(".box"), frame = stage.querySelector(".frame");
+    for (const el of [box, frame]) {
+      el.style.left = style.margin_left + "px"; el.style.top = style.margin_top + "px";
+      el.style.width = (1920 - style.margin_left - style.margin_right) + "px";
+      el.style.height = (1080 - style.margin_top - style.margin_bottom) + "px";
+    }
+  });
+  return geom;
+}
+
+// Randzone des Rahmens (10 Bildschirmpixel) -> Größe ändern, auch wenn ein Griff am Folienrand abgeschnitten ist.
+function edgeMode(frame, e) {
+  const r = frame.getBoundingClientRect(), z = 10;
+  const v = e.clientY - r.top < z ? "n" : r.bottom - e.clientY < z ? "s" : "";
+  const h = e.clientX - r.left < z ? "w" : r.right - e.clientX < z ? "e" : "";
+  return v + h || "move";
+}
+const CURSORS = {n: "ns-resize", s: "ns-resize", e: "ew-resize", w: "ew-resize", nw: "nwse-resize", se: "nwse-resize", ne: "nesw-resize", sw: "nesw-resize", move: "move"};
+
+$("#pv-slides").addEventListener("pointerdown", e => {
+  const frame = e.target.closest(".frame");
+  if (!frame || e.button !== 0) return;
+  const thumb = frame.closest(".thumb");
+  drag = {
+    mode: e.target.dataset.h || edgeMode(frame, e), x: e.clientX, y: e.clientY, thumb,
+    scale: thumb.clientWidth / 1920, frame, id: e.pointerId,
+    r: {l: style.margin_left, t: style.margin_top, r: 1920 - style.margin_right, b: 1080 - style.margin_bottom},
+  };
+  frame.setPointerCapture(e.pointerId);
+  thumb.classList.add("dragging");
+  e.preventDefault();
+});
+
+$("#pv-slides").addEventListener("pointermove", e => {
+  if (!drag) {
+    const frame = e.target.closest(".frame");
+    if (frame && !e.target.dataset.h) frame.style.cursor = CURSORS[edgeMode(frame, e)];
+    return;
+  }
+  const dx = (e.clientX - drag.x) / drag.scale, dy = (e.clientY - drag.y) / drag.scale;
+  const snap = e.shiftKey ? 0 : 10 / drag.scale;  // 10 Bildschirmpixel
+  const near = (v, target) => snap && Math.abs(v - target) < snap;
+  const MIN = 100, m = drag.mode;
+  let {l, t, r, b} = drag.r, snapX = false, snapY = false;
+  if (m === "move") {
+    const w = r - l, h = b - t;
+    l = clamp(l + dx, 0, 1920 - w); t = clamp(t + dy, 0, 1080 - h);
+    if (near(l + w / 2, 960)) { l = 960 - w / 2; snapX = true; }
+    else if (near(l, 0)) l = 0; else if (near(l + w, 1920)) l = 1920 - w;
+    if (near(t + h / 2, 540)) { t = 540 - h / 2; snapY = true; }
+    else if (near(t, 0)) t = 0; else if (near(t + h, 1080)) t = 1080 - h;
+    r = l + w; b = t + h;
+  } else {
+    if (m.includes("w")) { l = clamp(l + dx, 0, r - MIN); if (near(l, 0)) l = 0; else if (near(l, 1920 - r)) { l = 1920 - r; snapX = true; } }
+    if (m.includes("e")) { r = clamp(r + dx, l + MIN, 1920); if (near(r, 1920)) r = 1920; else if (near(1920 - r, l)) { r = 1920 - l; snapX = true; } }
+    if (m.includes("n")) { t = clamp(t + dy, 0, b - MIN); if (near(t, 0)) t = 0; else if (near(t, 1080 - b)) { t = 1080 - b; snapY = true; } }
+    if (m.includes("s")) { b = clamp(b + dy, t + MIN, 1080); if (near(b, 1080)) b = 1080; else if (near(1080 - b, t)) { b = 1080 - t; snapY = true; } }
+  }
+  [l, t, r, b] = [l, t, r, b].map(Math.round);
+  style.margin_left = l; style.margin_top = t; style.margin_right = 1920 - r; style.margin_bottom = 1080 - b;
+  applyBoxGeometry();
+  drag.thumb.classList.toggle("snap-x", snapX);
+  drag.thumb.classList.toggle("snap-y", snapY);
+  drag.thumb.querySelector(".drag-info").textContent = `x ${l}  y ${t}  ·  ${r - l} × ${b - t}`;
+  fillStyleForm();
+  fitPreview();
+});
+
+function endDrag() {
+  if (!drag) return;
+  drag.thumb.classList.remove("dragging", "snap-x", "snap-y");
+  drag = null;
+  if (renderPreview.pending) renderPreview();
+  styleChanged();  // speichern + Vorschau neu
+}
+$("#pv-slides").addEventListener("pointerup", endDrag);
+$("#pv-slides").addEventListener("pointercancel", endDrag);
+$("#pv-box").onchange = e => { $("#pv-slides").classList.toggle("show-box", e.target.checked); store.set("pv-box", e.target.checked ? "1" : ""); };
+$("#pv-zoom").oninput = e => {
+  $("#pv-slides").style.setProperty("--thumb", e.target.value + "px");
+  store.set("pv-zoom", e.target.value);
+};
+
+async function initExport() {
+  const cfg = await api("/api/export/settings");
+  style = cfg.style; styleDefaults = cfg.defaults; fonts = cfg.fonts;
+  buildStyleForm(); fillStyleForm(); renderHotkeyRows();
+  const z = store.get("pv-zoom");
+  if (z) { $("#pv-zoom").value = z; $("#pv-slides").style.setProperty("--thumb", z + "px"); }
+  if (store.get("pv-box")) { $("#pv-box").checked = true; $("#pv-slides").classList.add("show-box"); }
+}
+
+function openExportTab() {
+  renderExportList();
+  if (!xFocus && songs.length) focusPreview((songs.find(s => xSel.has(s.id)) || songs[0]).id);
+  else requestAnimationFrame(fitPreview);
+}
+
+/* Download */
+$("#x-start").onclick = async () => {
+  const ids = songs.filter(s => xSel.has(s.id)).map(s => s.id);
+  if (!ids.length) return;
+  const btn = $("#x-start");
+  btn.disabled = true; $("#x-msg").innerHTML = '<div class="muted" style="font-size:13px">Lieder werden umgewandelt …</div>';
+  try {
+    await saveStyle();
+    const res = await fetch("/api/export", {method: "POST", headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({ids: ids.length === songs.length ? null : ids, style, includeJson: $("#x-json").checked})});
+    if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || `HTTP ${res.status}`);
+    const blob = await res.blob();
+    const name = (res.headers.get("Content-Disposition") || "").match(/filename\*?=(?:UTF-8'')?"?([^";]+)/i);
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = name ? decodeURIComponent(name[1]) : "ProPresenter-Lieder.zip";
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 10000);
+    const failed = Number(res.headers.get("X-Export-Failed") || 0);
+    const size = blob.size < 1048576 ? Math.ceil(blob.size / 1024) + " KB" : (blob.size / 1048576).toFixed(1) + " MB";
+    $("#x-msg").innerHTML = failed
+      ? `<div class="notice warn">${failed} Lied(er) konnten nicht umgewandelt werden – Details in FEHLER.txt in der ZIP.</div>`
+      : `<div class="notice ok">Fertig: ${esc(a.download)} (${size}).</div>`;
+  } catch (err) {
+    $("#x-msg").innerHTML = `<div class="notice error">${esc(err.message)}</div>`;
+  } finally {
+    renderExportList();
+  }
+};
+
+/* ---------------- Ablaufplan ---------------- */
+let ctState = {loggedIn: false, user: "", url: ""};
+let events = [], evSel = null, plan = null;
+let plSettings = null, plLib = {docs: [], libraries: [], root: "", detected: ""}, docByRel = new Map(), docByLabel = new Map();
+
+const fmtDate = iso => {
+  const d = new Date(iso);
+  if (isNaN(d)) return iso || "";
+  return d.toLocaleDateString("de-DE", {weekday: "short", day: "2-digit", month: "2-digit", year: "numeric"}) +
+    " · " + d.toLocaleTimeString("de-DE", {hour: "2-digit", minute: "2-digit"});
+};
+const isoDay = d => new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+
+function renderCtBox() {
+  const box = $("#ct-box");
+  if (ctState.loggedIn) {
+    box.innerHTML = `<div class="ct-user"><span>Angemeldet als <b>${esc(ctState.user)}</b><br><span class="muted" style="font-size:12px">${esc(ctState.url)}</span></span>
+      <button class="btn small" id="ct-logout">Abmelden</button></div>`;
+    $("#ct-logout").onclick = async () => { ctState = await api("/api/ct/logout", {method: "POST"}); events = []; renderCtBox(); renderEvents(); };
+    return;
+  }
+  box.innerHTML = `<h3 style="margin-bottom:8px">Bei ChurchTools anmelden</h3>
+    <div class="field"><input type="url" id="ct-url" placeholder="ChurchTools-Adresse"></div>
+    <div class="field"><input type="text" id="ct-user" placeholder="Benutzername / E-Mail" autocomplete="username"></div>
+    <div class="field"><input type="password" id="ct-pass" placeholder="Passwort" autocomplete="current-password"></div>
+    <div class="field"><input type="text" id="ct-totp" placeholder="Zwei-Faktor-Code (falls aktiviert)" inputmode="numeric" autocomplete="one-time-code"></div>
+    <details class="token"><summary>Stattdessen Login-Token</summary><div class="field"><input type="password" id="ct-token" placeholder="Login-Token"></div></details>
+    <button class="btn primary" id="ct-login" style="width:100%">Anmelden</button>
+    <div id="ct-msg" style="margin-top:8px"></div>`;
+  $("#ct-url").value = store.get("ct-url") || $("#i-url").value;
+  $("#ct-user").value = store.get("ct-user") || "";
+  ["#ct-pass", "#ct-totp", "#ct-token"].forEach(s => $(s).onkeydown = e => { if (e.key === "Enter") ctLogin(); });
+  $("#ct-login").onclick = ctLogin;
+}
+
+async function ctLogin() {
+  const body = {url: $("#ct-url").value, user: $("#ct-user").value, password: $("#ct-pass").value,
+                totp: $("#ct-totp").value, token: $("#ct-token").value};
+  store.set("ct-url", body.url); store.set("ct-user", body.user);
+  const btn = $("#ct-login");
+  btn.disabled = true; btn.textContent = "Anmelden …"; $("#ct-msg").innerHTML = "";
+  try {
+    ctState = await api("/api/ct/login", {method: "POST", body});
+    renderCtBox();
+    await loadEvents();
+  } catch (err) {
+    $("#ct-msg").innerHTML = `<div class="notice error">${esc(err.message)}</div>`;
+    if (/Zwei-Faktor/.test(err.message)) $("#ct-totp").focus();
+    btn.disabled = false; btn.textContent = "Anmelden";
+  }
+}
+
+function needsLogin(err) {
+  if (!/anmelden/i.test(err.message)) return false;
+  ctState = {loggedIn: false, user: "", url: ""};
+  renderCtBox();
+  return true;
+}
+
+async function loadEvents() {
+  if (!ctState.loggedIn) { renderEvents(); return; }
+  $("#ev-count").textContent = "Termine werden geladen …";
+  try {
+    const data = await api(`/api/ct/events?from=${$("#ev-from").value}&to=${$("#ev-to").value}`);
+    events = data.events;
+    renderEvents();
+    if (!evSel) {  // nächsten Termin vorwählen
+      const now = Date.now();
+      const next = events.find(e => new Date(e.start).getTime() > now - 6 * 3600e3);
+      if (next) loadPlan(next);
+    }
+  } catch (err) {
+    needsLogin(err);
+    events = []; renderEvents();
+    $("#ev-count").textContent = err.message;
+  }
+}
+
+function renderEvents() {
+  const q = $("#ev-q").value.trim().toLowerCase();
+  const shown = events.filter(e => !q || (e.name + " " + e.calendar + " " + fmtDate(e.start)).toLowerCase().includes(q));
+  $("#ev-list").innerHTML = shown.map(e => `<li data-id="${e.id}" class="${evSel && evSel.id === e.id ? "sel" : ""}">
+      <div class="t"><span>${esc(e.name)}</span>${e.canceled ? '<span class="badge danger">abgesagt</span>' : ""}</div>
+      <div class="ev-date">${esc(fmtDate(e.start))}${e.calendar ? " · " + esc(e.calendar) : ""}</div></li>`).join("");
+  $("#ev-count").textContent = !ctState.loggedIn ? "Nicht angemeldet." : `${shown.length} Termine`;
+}
+$("#ev-list").onclick = e => {
+  const li = e.target.closest("li[data-id]");
+  if (li) loadPlan(events.find(ev => String(ev.id) === li.dataset.id));
+};
+$("#ev-q").oninput = renderEvents;
+$("#ev-reload").onclick = loadEvents;
+["#ev-from", "#ev-to"].forEach(s => $(s).onchange = loadEvents);
+
+function defaultInclude(row) {
+  if (row.before && !plSettings.include_before) return false;
+  if (row.type === "normal") return plSettings.include_normal;
+  return true;
+}
+
+async function loadPlan(ev) {
+  if (!ev) return;
+  evSel = ev; renderEvents();
+  $("#plan-title").textContent = ev.name;
+  $("#plan-sub").textContent = fmtDate(ev.start);
+  $("#plan-msg").innerHTML = ""; $("#plan-stats").innerHTML = "";
+  $("#plan-list").innerHTML = '<li style="display:block;border:0" class="muted">Ablaufplan wird geladen …</li>';
+  $("#pl-start").disabled = true;
+  try {
+    const data = await api(`/api/ct/events/${ev.id}/plan?name=${encodeURIComponent(ev.name)}&start=${encodeURIComponent(ev.start || "")}`);
+    if (evSel !== ev) return;  // inzwischen anderer Termin gewählt
+    const prev = plan && plan.event.id === ev.id ? new Map(plan.rows.map(r => [r.id, r])) : null;
+    plan = {event: ev, agenda: data.agenda, rows: data.items.map(r => {
+      const old = prev && prev.get(r.id);
+      const m = r.match;
+      return {...r, include: old && old.touched ? old.include : defaultInclude(r), touched: old ? old.touched : false,
+        rel: old && old.manual ? old.rel : (m && m.doc ? m.doc.rel : ""), manual: old ? old.manual : false};
+    })};
+    $("#pl-name").value = data.playlistName;
+    if (!data.libraryFound) $("#plan-msg").innerHTML = '<div class="notice warn" style="margin-top:12px">Keine ProPresenter-Bibliothek gefunden – rechts den ProPresenter-Ordner angeben.</div>';
+    renderPlan();
+  } catch (err) {
+    if (needsLogin(err)) { $("#plan-list").innerHTML = ""; }
+    else $("#plan-list").innerHTML = `<li style="display:block;border:0"><div class="notice ${/keinen Ablaufplan/.test(err.message) ? "warn" : "error"}">${esc(err.message)}</div></li>`;
+  }
+}
+
+function rowStatus(r) {
+  if (r.type !== "song") return null;
+  if (r.manual) return r.rel ? "manual" : "missing";
+  return r.rel ? r.match.status : "missing";
+}
+
+function renderPlan() {
+  if (!plan) return;
+  const rows = plan.rows;
+  if (!rows.length) {
+    $("#plan-list").innerHTML = '<li style="display:block;border:0" class="muted">Der Ablaufplan ist leer.</li>';
+    $("#pl-start").disabled = true; return;
+  }
+  const color = r => r.type === "header" ? plSettings.header_color : plSettings.item_color;
+  const fmtDur = s => s ? `${Math.round(s / 60)} Min` : "";
+  $("#plan-list").innerHTML = rows.map((r, i) => {
+    const sub = [r.before ? "vor Beginn" : "", fmtDur(r.duration), r.responsible].filter(Boolean).map(esc).join(" · ");
+    let body;
+    if (r.type === "song") {
+      const st = rowStatus(r), doc = docByRel.get(r.rel);
+      const name = doc ? `${doc.library} / ${doc.name}` : "";
+      const chip = {
+        exact: `<span class="badge covered" title="${esc(r.rel)}">✓ ${esc(name)}</span>`,
+        normalized: `<span class="badge covered" title="${esc(r.rel)}">✓ ${esc(name)}</span>`,
+        manual: `<span class="badge covered" title="${esc(r.rel)}">✓ ${esc(name)} (von Hand)</span>`,
+        similar: `<span class="badge missing" title="${esc(r.rel)}">≈ ${esc(name)} – bitte prüfen</span>`,
+        missing: `<span class="badge danger">✗ nicht in ProPresenter gefunden</span>`,
+      }[st];
+      const alts = (r.manual ? [] : (r.match.candidates || [])).slice(0, 3)
+        .map(c => `<button class="linkbtn" data-alt="${i}" data-rel="${esc(c.rel)}">${esc(c.library)} / ${esc(c.name)}</button>`).join(" ");
+      body = `<div class="ttl"><span>♪ ${esc(r.title)}</span>${r.song.arrangement ? `<span class="badge">${esc(r.song.arrangement)}</span>` : ""}</div>
+        ${sub ? `<div class="sub">${sub}</div>` : ""}
+        <div class="match">${chip}<button class="linkbtn" data-pick="${i}">ändern</button>
+          ${alts ? `<span class="muted">auch:</span> ${alts}` : ""}</div>
+        <div class="pick" id="pick-${i}" hidden><input type="text" list="pl-docs" placeholder="Bibliothek/Name suchen …" data-pickin="${i}">
+          <button class="btn small" data-none="${i}" title="Lied als fehlend behandeln">keins</button></div>`;
+    } else {
+      body = `<div class="ttl"><i class="sw" style="background:${color(r)}"></i><span>${esc(r.title) || '<span class="muted">(ohne Titel)</span>'}</span></div>
+        ${sub || r.note ? `<div class="sub">${sub}${sub && r.note ? " · " : ""}${esc(r.note).slice(0, 160)}</div>` : ""}`;
+    }
+    return `<li class="${r.type}${r.include ? "" : " off"}"><input type="checkbox" data-inc="${i}" ${r.include ? "checked" : ""} title="In die Playlist übernehmen">
+      <span class="time">${esc(r.start || "")}</span><div style="min-width:0">${body}</div></li>`;
+  }).join("");
+
+  const songsIn = rows.filter(r => r.type === "song" && r.include);
+  const count = st => songsIn.filter(r => rowStatus(r) === st).length;
+  const ok = count("exact") + count("normalized") + count("manual"), sim = count("similar"), miss = count("missing");
+  $("#plan-stats").innerHTML = `<span class="badge covered">${ok} ${ok === 1 ? "Lied" : "Lieder"} zugeordnet</span>` +
+    (sim ? `<span class="badge missing">${sim} ähnlich</span>` : "") + (miss ? `<span class="badge danger">${miss} ${miss === 1 ? "fehlt" : "fehlen"}</span>` : "") +
+    `<span class="badge">${rows.filter(r => r.type !== "song" && r.include).length} Kopfzeilen</span>`;
+  const status = plan.agenda.isFinal ? "" : " · Entwurf";
+  $("#plan-sub").textContent = fmtDate(plan.event.start) + status;
+  $("#pl-start").disabled = !rows.some(r => r.include);
+}
+
+$("#plan-list").addEventListener("click", e => {
+  const t = e.target, rows = plan && plan.rows;
+  if (!rows) return;
+  if (t.dataset.inc !== undefined) {
+    const r = rows[+t.dataset.inc]; r.include = t.checked; r.touched = true; renderPlan();
+  } else if (t.dataset.pick !== undefined) {
+    const box = $("#pick-" + t.dataset.pick); box.hidden = !box.hidden;
+    if (!box.hidden) box.querySelector("input").focus();
+  } else if (t.dataset.alt !== undefined) {
+    const r = rows[+t.dataset.alt]; r.rel = t.dataset.rel; r.manual = true; renderPlan();
+  } else if (t.dataset.none !== undefined) {
+    const r = rows[+t.dataset.none]; r.rel = ""; r.manual = true; renderPlan();
+  }
+});
+$("#plan-list").addEventListener("change", e => {
+  const i = e.target.dataset.pickin;
+  if (i === undefined) return;
+  const doc = docByLabel.get(e.target.value.trim());
+  if (!doc) { e.target.setCustomValidity("Nicht in der Bibliothek"); e.target.reportValidity(); return; }
+  const r = plan.rows[+i]; r.rel = doc.rel; r.manual = true; renderPlan();
+});
+
+/* Einstellungen + Bibliothek */
+function applyLibrary(data) {
+  plLib = data; plSettings = data.settings;
+  docByRel = new Map(data.docs.map(d => [d.rel, d]));
+  docByLabel = new Map(data.docs.map(d => [`${d.library}/${d.name}`, d]));
+  let dl = $("#pl-docs");
+  if (!dl) { dl = document.createElement("datalist"); dl.id = "pl-docs"; document.body.appendChild(dl); }
+  dl.innerHTML = data.docs.map(d => `<option value="${esc(d.library + "/" + d.name)}">`).join("");
+  document.querySelectorAll("[data-pl]").forEach(el => {
+    const v = plSettings[el.dataset.pl];
+    if (el.type === "checkbox") el.checked = !!v; else el.value = v;
+  });
+  $("#pl-root").value = plSettings.show_root;
+  $("#pl-root").placeholder = data.detected ? "automatisch: " + data.detected : "nicht gefunden – Pfad eintragen";
+  $("#pl-root-info").textContent = data.root ? `${data.docs.length} Präsentationen in ${data.libraries.length} Bibliotheken` : "Keine Bibliothek gefunden.";
+  $("#pl-libs").innerHTML = data.libraries.map((l, i) => `<li><span>${i + 1}.</span><span>${esc(l)}</span>
+    <button data-up="${i}" ${i ? "" : "disabled"} title="nach oben">↑</button><button data-down="${i}" ${i < data.libraries.length - 1 ? "" : "disabled"} title="nach unten">↓</button></li>`).join("");
+}
+
+async function savePlSettings(rematch) {
+  $("#pl-saved").textContent = "speichert …";
+  try {
+    applyLibrary(await api("/api/playlist/settings", {method: "PUT", body: plSettings}));
+    $("#pl-saved").textContent = "gespeichert";
+    if (rematch && evSel) await loadPlan(evSel); else renderPlan();
+  } catch (err) {
+    $("#pl-saved").textContent = "";
+    $("#pl-root-info").innerHTML = `<span style="color:var(--danger)">${esc(err.message)}</span>`;
+  }
+}
+
+document.querySelectorAll("[data-pl]").forEach(el => el.onchange = () => {
+  const key = el.dataset.pl;
+  plSettings[key] = el.type === "checkbox" ? el.checked : el.value;
+  if (plan && (key === "include_normal" || key === "include_before"))
+    plan.rows.forEach(r => { if (!r.touched) r.include = defaultInclude(r); });
+  savePlSettings(key === "fuzzy");
+});
+$("#pl-libs").onclick = e => {
+  const up = e.target.dataset.up, down = e.target.dataset.down;
+  if (up === undefined && down === undefined) return;
+  const libs = [...plLib.libraries], i = +(up ?? down), j = up !== undefined ? i - 1 : i + 1;
+  [libs[i], libs[j]] = [libs[j], libs[i]];
+  plSettings.library_order = libs;
+  savePlSettings(true);
+};
+$("#pl-root").onchange = e => { plSettings.show_root = e.target.value.trim(); savePlSettings(true); };
+
+$("#pl-start").onclick = async () => {
+  if (!plan) return;
+  const btn = $("#pl-start");
+  btn.disabled = true; $("#pl-msg").innerHTML = "";
+  try {
+    const res = await fetch("/api/playlist", {method: "POST", headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({name: $("#pl-name").value, settings: plSettings,
+        items: plan.rows.map(r => ({type: r.type, title: r.title, include: r.include, rel: r.type === "song" ? r.rel : ""}))})});
+    if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || `HTTP ${res.status}`);
+    const blob = await res.blob();
+    const m = (res.headers.get("Content-Disposition") || "").match(/filename\*=UTF-8''([^;]+)|filename="?([^";]+)/i);
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = m ? decodeURIComponent(m[1] || m[2]) : "Ablaufplan.proplaylist";
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 10000);
+    let notes = [];
+    try { notes = JSON.parse(decodeURIComponent(res.headers.get("X-Playlist-Notes") || "[]")); } catch {}
+    $("#pl-msg").innerHTML = `<div class="notice ${notes.length ? "warn" : "ok"}">Fertig: ${esc(a.download)} (${res.headers.get("X-Playlist-Items")} Einträge).
+      ${notes.length ? `<ul style="margin:6px 0 0;padding-left:18px">${notes.map(n => `<li>${esc(n)}</li>`).join("")}</ul>` : ""}</div>`;
+  } catch (err) {
+    $("#pl-msg").innerHTML = `<div class="notice error">${esc(err.message)}</div>`;
+  } finally {
+    btn.disabled = false;
+  }
+};
+
+let planInit = false;
+async function openPlanTab() {
+  const first = !planInit;
+  planInit = true;
+  if (first) {
+    const today = new Date();
+    $("#ev-from").value = isoDay(new Date(today.getTime() - 7 * 864e5));
+    $("#ev-to").value = isoDay(new Date(today.getTime() + 56 * 864e5));
+    applyLibrary(await api("/api/playlist/library"));
+  }
+  // Anmeldung kann inzwischen über den Import-Tab passiert sein
+  const st = await api("/api/ct/status");
+  const changed = first || st.loggedIn !== ctState.loggedIn;
+  ctState = st;
+  if (changed) { renderCtBox(); await loadEvents(); }
+}
+
+/* ---------------- Import ---------------- */
+let logNext = 0, polling = false;
+
+function logLine(line) {
+  const cls = /FEHLER|Abbruch|Unerwarteter/.test(line) ? "e" : /HINWEIS/.test(line) ? "w" : /^Fertig|Angemeldet/.test(line) ? "o" : "";
+  return `<div class="${cls}">${esc(line) || "&nbsp;"}</div>`;
+}
+
+async function poll() {
+  if (polling) return;
+  polling = true;
+  try {
+    while (true) {
+      const st = await api("/api/import?since=" + logNext);
+      const log = $("#i-log");
+      if (logNext === 0 && (st.log.length || st.running)) log.innerHTML = "";
+      if (st.log.length) {
+        const atBottom = log.scrollHeight - log.scrollTop - log.clientHeight < 40;
+        log.insertAdjacentHTML("beforeend", st.log.map(logLine).join(""));
+        if (atBottom) log.scrollTop = log.scrollHeight;
+      }
+      logNext = st.next;
+      const m = log.textContent.match(/\[(\d+)\/(\d+)\][^\[]*$/);
+      if (m) $("#i-bar").style.width = (100 * m[1] / m[2]) + "%";
+      $("#i-start").disabled = st.running;
+      $("#i-start").textContent = st.running ? "Import läuft …" : "Import starten";
+      if (!st.running) {
+        renderSummary(st.summary);
+        if (st.summary) loadSongs();
+        break;
+      }
+      await new Promise(r => setTimeout(r, 700));
+    }
+  } finally { polling = false; }
+}
+
+function renderSummary(s) {
+  const el = $("#i-summary");
+  if (!s) { el.innerHTML = ""; return; }
+  if (s.error) {
+    el.innerHTML = `<div class="notice error">${esc(s.error)}</div>`;
+    if (s.needsTotp) $("#i-totp").focus();
+    return;
+  }
+  $("#i-bar").style.width = "100%";
+  el.innerHTML = `<div class="notice ${s.failed.length ? "warn" : "ok"}">
+    ${s.downloaded} Lieder heruntergeladen · ${s.missing} ohne .sng · ${s.failed.length} Fehler.
+    ${s.missing ? ' <a href="#" id="show-missing">Lieder ohne .sng anzeigen</a>' : ""}</div>`;
+  const link = $("#show-missing");
+  if (link) link.onclick = e => {
+    e.preventDefault(); showTab("songs");
+    document.querySelector('.chip[data-f="missing"]').click();
+  };
+}
+
+["#i-pass", "#i-totp", "#i-token"].forEach(s => $(s).onkeydown = e => { if (e.key === "Enter") $("#i-start").click(); });
+$("#i-start").onclick = async () => {
+  const body = {
+    url: $("#i-url").value, user: $("#i-user").value, password: $("#i-pass").value,
+    token: $("#i-token").value, totp: $("#i-totp").value, byCategory: $("#i-cat").checked,
+  };
+  store.set("ct-url", body.url); store.set("ct-user", body.user);
+  try {
+    await api("/api/import", {method: "POST", body});
+    logNext = 0; $("#i-bar").style.width = "0"; $("#i-summary").innerHTML = "";
+    $("#i-totp").value = "";
+    poll();
+  } catch (err) {
+    $("#i-summary").innerHTML = `<div class="notice error">${esc(err.message)}</div>`;
+  }
+};
+
+/* ---------------- Start ---------------- */
+(async () => {
+  const cfg = await api("/api/config");
+  $("#i-url").value = store.get("ct-url") || cfg.defaultUrl;
+  $("#i-user").value = store.get("ct-user") || "";
+  window.addEventListener("beforeunload", e => { if (dirty()) e.preventDefault(); });
+  await initExport();
+  resetEditor();
+  const tab = store.get("tab");
+  await loadSongs();
+  if (tab && document.getElementById("tab-" + tab)) showTab(tab);
+  poll();  // falls noch ein Import läuft
+})();
+</script>
+</body>
+</html>
