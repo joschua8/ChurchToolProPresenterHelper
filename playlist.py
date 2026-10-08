@@ -24,7 +24,7 @@ import uuid
 import zipfile
 from dataclasses import asdict, dataclass, field, fields
 from datetime import datetime
-from pathlib import Path
+from pathlib import Path, PureWindowsPath
 from urllib.parse import quote
 
 import propresenterFormatter  # noqa: F401  (pb2-Module in den Suchpfad)
@@ -392,6 +392,11 @@ def _set_color(color, hex_color: str) -> None:
     color.alpha = 1
 
 
+def _win_file_url(path) -> str:
+    p = PureWindowsPath(path)
+    return "file:///" + quote(p.as_posix(), safe="/:")
+
+
 def _document_url(url, root: Path | None, rel: str) -> None:
     """Verweis auf eine Präsentation, wie ProPresenter ihn selbst schreibt."""
     url.local.root = basicTypes_pb2.URL.LocalRelativePath.ROOT_SHOW
@@ -400,8 +405,9 @@ def _document_url(url, root: Path | None, rel: str) -> None:
         return
     full = root / rel
     if sys.platform.startswith("win"):
+        # ProPresenter erwartet auch unter Windows eine Datei-URL (file:///C:/…), keinen Pfad mit „\“.
         url.platform = basicTypes_pb2.URL.PLATFORM_WIN32
-        url.absolute_string = str(full)
+        url.absolute_string = _win_file_url(full)
     else:
         url.platform = basicTypes_pb2.URL.PLATFORM_MACOS
         url.absolute_string = "file://" + quote(str(full), safe="/")
