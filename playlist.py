@@ -31,8 +31,9 @@ import propresenterFormatter  # noqa: F401  (pb2-Module in den Suchpfad)
 import propresenter_pb2  # noqa: E402
 import basicTypes_pb2  # noqa: E402
 
-BASE_DIR = Path(__file__).resolve().parent
-SETTINGS_PATH = Path(os.environ.get("PLAYLIST_SETTINGS", BASE_DIR / "playlist_settings.json"))
+from paths import DATA_DIR  # noqa: E402
+
+SETTINGS_PATH = Path(os.environ.get("PLAYLIST_SETTINGS", DATA_DIR / "playlist_settings.json"))
 
 # Farben wie im ChurchTools-Export: Überschriften rot, normale Ablaufpunkte rosa.
 DEFAULT_HEADER_COLOR = "#ff0000"

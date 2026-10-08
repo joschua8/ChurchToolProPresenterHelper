@@ -1,0 +1,60 @@
+# Baut die Liederverwaltung als eigenständiges Programm für macOS und Windows.
+# Ergebnis: unter „Actions“ beim jeweiligen Lauf als Download (Artifacts);
+# bei einem Tag „v…“ zusätzlich als GitHub-Release.
+name: Programm bauen
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ["main", "claude/**"]
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-latest        # Apple Silicon (M1 und neuer)
+            name: macOS-AppleSilicon
+          - os: macos-13            # Intel-Macs
+            name: macOS-Intel
+          - os: windows-latest
+            name: Windows
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Abhängigkeiten
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt pyinstaller
+      - name: Bauen
+        run: pyinstaller --noconfirm --clean Liederverwaltung.spec
+      - name: Kurztest
+        shell: bash
+        run: |
+          ./dist/Liederverwaltung* --no-browser --port 5123 &
+          for i in $(seq 1 30); do curl -sf http://127.0.0.1:5123/api/config && break; sleep 1; done
+          curl -sf http://127.0.0.1:5123/ > /dev/null
+      - name: Paket schnüren
+        shell: bash
+        run: |
+          mkdir -p pkg
+          cp dist/Liederverwaltung* pkg/
+          cp ANLEITUNG.md pkg/
+          cd pkg && 7z a ../Liederverwaltung-${{ matrix.name }}.zip . > /dev/null
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Liederverwaltung-${{ matrix.name }}
+          path: Liederverwaltung-${{ matrix.name }}.zip
+      - name: Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: Liederverwaltung-${{ matrix.name }}.zip

@@ -30,6 +30,7 @@ from flask import Flask, abort, jsonify, request, send_file, send_from_directory
 
 import download_songs as dl
 import playlist
+import paths
 import pp_sync
 import pro_export
 from sng import (
@@ -42,11 +43,11 @@ from sng import (
     song_to_freetext,
 )
 
-BASE_DIR = Path(__file__).resolve().parent
-SONGS_DIR = Path(os.environ.get("SONGS_DIR", BASE_DIR / "songs")).resolve()
+BASE_DIR = paths.RES_DIR
+SONGS_DIR = Path(os.environ.get("SONGS_DIR", paths.DATA_DIR / "songs")).resolve()
 REPORT_NAME = "fehlende_sng.csv"
-APP_SETTINGS_PATH = Path(os.environ.get("APP_SETTINGS", BASE_DIR / "app_settings.json"))
-BACKUP_DIR = Path(os.environ.get("PP_BACKUP_DIR", BASE_DIR / "backup"))
+APP_SETTINGS_PATH = Path(os.environ.get("APP_SETTINGS", paths.DATA_DIR / "app_settings.json"))
+BACKUP_DIR = Path(os.environ.get("PP_BACKUP_DIR", paths.DATA_DIR / "backup"))
 
 app = Flask(__name__, static_folder=None)
 
@@ -781,16 +782,35 @@ def index():
     return send_from_directory(BASE_DIR / "web", "index.html")
 
 
+def _port_in_use(port: int) -> bool:
+    import socket
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+        sock.settimeout(0.5)
+        return sock.connect_ex(("127.0.0.1", port)) == 0
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Lokale Weboberfläche für die Liederdatenbank")
     parser.add_argument("--port", type=int, default=5005)
     parser.add_argument("--no-browser", action="store_true", help="Browser nicht automatisch öffnen")
     args = parser.parse_args()
     url = f"http://127.0.0.1:{args.port}"
-    print(f"Liederverwaltung läuft auf {url}  (Beenden mit Strg+C)")
+    paths.ensure_data_dir()
+    if _port_in_use(args.port):  # läuft schon (z. B. zweiter Doppelklick) -> nur Browser öffnen
+        print(f"Liederverwaltung läuft bereits auf {url}")
+        if not args.no_browser:
+            webbrowser.open(url)
+        return
+    print(f"Liederverwaltung läuft auf {url}  (Beenden: dieses Fenster schließen oder Strg+C)")
+    print(f"Datenordner: {paths.DATA_DIR}")
     print(f"Liederordner: {SONGS_DIR}")
     if not args.no_browser:
         threading.Timer(1.0, webbrowser.open, args=(url,)).start()
+    # Ohne Flask-Startbanner/Anfrageprotokoll: das Fenster zeigt nur, was für Benutzer wichtig ist.
+    import logging
+    import flask.cli
+    logging.getLogger("werkzeug").setLevel(logging.ERROR)
+    flask.cli.show_server_banner = lambda *a, **k: None
     # Nur lokal erreichbar – Zugangsdaten gehen über diesen Server.
     app.run(host="127.0.0.1", port=args.port, debug=False, threaded=True)
 

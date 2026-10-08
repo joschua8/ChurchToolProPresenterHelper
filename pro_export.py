@@ -33,9 +33,11 @@ from sng import Section, Song, read_sng
 import graphicsData_pb2  # noqa: E402  (über propresenterFormatter im Suchpfad)
 import hotKey_pb2  # noqa: E402
 
-BASE_DIR = Path(__file__).resolve().parent
-TEMPLATE_PATH = BASE_DIR / "examples" / "BeispielZielFormatierung.json"
-SETTINGS_PATH = Path(os.environ.get("EXPORT_SETTINGS", BASE_DIR / "export_settings.json"))
+from paths import DATA_DIR, RES_DIR  # noqa: E402
+
+BASE_DIR = DATA_DIR
+TEMPLATE_PATH = RES_DIR / "examples" / "BeispielZielFormatierung.json"
+SETTINGS_PATH = Path(os.environ.get("EXPORT_SETTINGS", DATA_DIR / "export_settings.json"))
 SLIDE_W, SLIDE_H = 1920, 1080
 
 # Deterministische UUIDs: gleiches Lied -> gleiche IDs bei jedem Export.
