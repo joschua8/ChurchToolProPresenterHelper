@@ -20,7 +20,7 @@ jobs:
         include:
           - os: macos-latest        # Apple Silicon (M1 und neuer)
             name: macOS-AppleSilicon
-          - os: macos-13            # Intel-Macs
+          - os: macos-15-intel      # Intel-Macs
             name: macOS-Intel
           - os: windows-latest
             name: Windows
