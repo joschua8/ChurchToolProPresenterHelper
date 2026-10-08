@@ -69,7 +69,8 @@ def detect_show_root() -> str:
 
 @dataclass
 class PlaylistSettings:
-    show_root: str = ""                  # leer = automatisch erkennen
+    show_root: str = ""                  # leer = automatisch erkennen (bzw. aus song_library ableiten)
+    song_library: str = ""               # Ordner der Lieder-Bibliothek (…/Libraries/Songs); leer = automatisch
     library_order: list[str] = field(default_factory=list)  # bevorzugte Bibliotheken zuerst
     header_color: str = DEFAULT_HEADER_COLOR
     item_color: str = DEFAULT_ITEM_COLOR
@@ -101,8 +102,31 @@ class PlaylistSettings:
         return asdict(self)
 
     def root(self) -> Path | None:
-        root = self.show_root or detect_show_root()
-        return Path(root).expanduser() if root else None
+        if self.show_root:
+            return Path(self.show_root).expanduser()
+        lib = Path(self.song_library).expanduser() if self.song_library else None
+        if lib and lib.parent.name == "Libraries":
+            return lib.parent.parent
+        root = detect_show_root()
+        return Path(root) if root else None
+
+    def song_dir(self, docs: list["Doc"] | None = None) -> Path | None:
+        """Ordner der ProPresenter-Lieder-Bibliothek: Einstellung, sonst bevorzugte Bibliothek im Arbeitsordner."""
+        if self.song_library:
+            return Path(self.song_library).expanduser()
+        root = self.root()
+        if root is None:
+            return None
+        libs = root / "Libraries"
+        if docs is None:
+            docs = scan_library(root)
+        names = ordered_libraries(docs, self.library_order)
+        if names:
+            for d in libs.iterdir() if libs.is_dir() else []:
+                if nfc(d.name) == names[0]:
+                    return d
+        songs = libs / "Songs"
+        return songs if songs.is_dir() else None
 
 
 def load_settings(path: Path | None = None) -> PlaylistSettings:
