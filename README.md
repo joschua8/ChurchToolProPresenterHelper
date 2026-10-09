@@ -7,7 +7,7 @@ inklusive Predigtfolien, Vaterunser und Stille-Bild.
 
 
 
-> SongBridge ist ein privates Gemeindeprojekt und steht in keiner Verbindung zu ChurchTools (ECGroup) oder
+> SongBridge ist ein privates Projekt und steht in keiner Verbindung zu ChurchTools (ECGroup) oder
 > Renewed Vision (ProPresenter).
 
 ---
