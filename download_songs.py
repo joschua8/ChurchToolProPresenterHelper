@@ -144,6 +144,25 @@ class ChurchToolsClient:
             raise ChurchToolsError(f"Ablaufplan nicht abrufbar (HTTP {resp.status_code}): {_api_message(resp)}")
         return resp.json().get("data") or None
 
+    def event_files(self, event_id: int | str) -> list[dict]:
+        """Dateien am Termin (Reiter „Dateien“ im Ablauf): [{id, name}]. Links ohne Datei fallen weg."""
+        data = self._get_data(f"events/{event_id}", "Termin").get("data") or {}
+        files = []
+        for f in data.get("eventFiles") or []:
+            if (f.get("domainType") or "file") != "file" or not f.get("domainIdentifier"):
+                continue
+            files.append({"id": str(f["domainIdentifier"]), "name": (f.get("title") or "").strip(),
+                          "url": f.get("frontendUrl") or ""})
+        return files
+
+    def file_url(self, file_id: str) -> str:
+        """Download-Adresse einer Datei (GET /files/{id}/meta -> fileUrl)."""
+        data = self._get_data(f"files/{file_id}/meta", "Datei").get("data") or {}
+        url = data.get("fileUrl") or ""
+        if not url:
+            raise ChurchToolsError(f"Datei {file_id}: keine Download-Adresse")
+        return url
+
     def download(self, file_url: str, target: Path) -> None:
         if not file_url.startswith("http"):
             file_url = f"{self.base_url}/{file_url.lstrip('/')}"

@@ -15,6 +15,7 @@ nennen das ausgewählte Arrangement der Präsentation.
 
 from __future__ import annotations
 
+import copy
 import difflib
 import io
 import json
@@ -82,6 +83,9 @@ class PlaylistSettings:
     missing_as_header: bool = True       # nicht gefundenes Lied: Kopfzeile mit Hinweis statt weglassen
     embed_presentations: bool = True     # .pro-Dateien mit in die Playlist packen (wie ProPresenters Export)
     fuzzy: bool = True                   # ähnliche Namen automatisch zuordnen
+    add_lords_prayer: bool = True        # Vaterunser unter dem Ablaufpunkt „Vaterunser“ einfügen
+    add_silence: bool = True             # Stille-Bilder unter dem Ablaufpunkt „Stille“ einfügen
+    silence_dir: str = ""                # Ordner mit den Stille-Bildern (.jpg/.png)
 
     @classmethod
     def from_dict(cls, data: dict | None) -> "PlaylistSettings":
@@ -382,6 +386,332 @@ def plan_items(agenda: dict, matcher: Matcher, fuzzy: bool = True) -> list[dict]
     return rows
 
 
+# ------------------------------------------------------------------ Automatische Einträge
+
+# Vaterunser: CCLI 7113062 laut Joschua; die Präsentation „Sample/Vater Unser.pro“ trägt 7116302.
+LORDS_PRAYER_CCLI = {7113062, 7116302}
+LORDS_PRAYER_NAMES = ("Vater Unser", "Vaterunser")
+
+IMAGE_EXT = {".jpg", ".jpeg", ".png"}
+VIDEO_EXT = {".mp4", ".mov", ".m4v"}
+AUDIO_EXT = {".mp3", ".wav", ".m4a", ".aac"}
+SLIDES_EXT = {".pptx", ".ppt", ".key", ".pdf"}
+KEYNOTE_IDS = ("com.apple.Keynote", "com.apple.iWork.Keynote")
+
+
+def media_kind(name: str) -> str:
+    ext = Path(name).suffix.lower()
+    for kind, exts in (("image", IMAGE_EXT), ("video", VIDEO_EXT), ("audio", AUDIO_EXT), ("slides", SLIDES_EXT)):
+        if ext in exts:
+            return kind
+    return ""
+
+
+def _key(text: str) -> str:
+    """„Vater Unser“, „Vaterunser“, „Vater-unser“ -> „vaterunser“."""
+    return norm_name(text).replace(" ", "")
+
+
+_ccli_cache: dict[str, tuple[float, int]] = {}
+
+
+def doc_ccli(root: Path | None, doc: Doc) -> int:
+    """CCLI-Nummer einer Präsentation (gecacht nach Änderungszeit)."""
+    if root is None:
+        return 0
+    path = root / doc.rel
+    try:
+        mtime = path.stat().st_mtime
+    except OSError:
+        return 0
+    hit = _ccli_cache.get(str(path))
+    if hit and hit[0] == mtime:
+        return hit[1]
+    from presentation_pb2 import Presentation
+    pres = Presentation()
+    try:
+        pres.ParseFromString(path.read_bytes())
+        number = pres.ccli.song_number
+    except Exception:  # defekte/fremde Datei
+        number = 0
+    _ccli_cache[str(path)] = (mtime, number)
+    return number
+
+
+def find_lords_prayer(matcher: Matcher, root: Path | None) -> Match:
+    """Vaterunser über die CCLI-Nummer, sonst über den Namen."""
+    hits = matcher._sort([d for d in matcher.docs if doc_ccli(root, d) in LORDS_PRAYER_CCLI])
+    if hits:
+        return Match("exact", hits[0], hits[1:])
+    for name in LORDS_PRAYER_NAMES:
+        m = matcher.match(name, fuzzy=False)
+        if m.doc:
+            return m
+    return Match("missing")
+
+
+def silence_images(settings: PlaylistSettings) -> list[Path]:
+    folder = Path(settings.silence_dir).expanduser() if settings.silence_dir else None
+    if not folder or not folder.is_dir():
+        return []
+    return sorted((f for f in folder.iterdir() if f.is_file() and f.suffix.lower() in IMAGE_EXT
+                   and not f.name.startswith(".")), key=lambda f: f.name.casefold())
+
+
+def _auto_row(row_id: str, kind: str, auto: str, title: str, before: bool = False, **extra) -> dict:
+    return {"id": row_id, "type": kind, "auto": auto, "title": title, "note": "", "duration": 0,
+            "start": "", "before": before, "responsible": "", **extra}
+
+
+def _file_target(rows: list[dict], name: str) -> int | None:
+    """Ablaufpunkt, zu dem eine Datei gehört („Predigt Gottes Geschenk.pptx“ -> „Predigt“)."""
+    fk = re.sub(r"\d+", "", _key(Path(name).stem))
+    if len(fk) < 4:
+        return None
+    for i, row in enumerate(rows):
+        if row["type"] == "song" or row.get("auto"):
+            continue
+        rk = re.sub(r"\d+", "", _key(row["title"]))
+        if len(rk) >= 4 and (rk in fk or fk in rk):
+            return i
+    return None
+
+
+def add_auto_rows(rows: list[dict], matcher: Matcher, root: Path | None, settings: PlaylistSettings,
+                  event_files: list[dict]) -> list[dict]:
+    """Ergänzt den Ablauf um Vaterunser, Stille-Bilder und die Dateien am Termin.
+
+    Die Zeilen werden immer erzeugt; ob sie in die Playlist kommen, entscheidet die Oberfläche
+    (Häkchen, Standard aus add_lords_prayer / add_silence).
+    """
+    images = silence_images(settings)
+    silence_error = "" if images else (
+        "Ordner für Stille-Bilder unter Einstellungen festlegen." if not settings.silence_dir
+        else f"Keine Bilder (.jpg/.png) in {settings.silence_dir}.")
+    prayer = None
+
+    files_after: dict[int, list[dict]] = {}
+    for f in event_files:
+        kind = media_kind(f["name"])
+        file_row = _auto_row(f"file-{f['id']}", "media", "file", f["name"],
+                             media={"source": "ct", "fileId": f["id"], "name": f["name"], "kind": kind},
+                             error="" if kind else "Dateityp wird nicht unterstützt.")
+        files_after.setdefault(_file_target(rows, f["name"]), []).append(file_row)
+
+    out: list[dict] = []
+    for i, row in enumerate(rows):
+        out.append(row)
+        out.extend(files_after.get(i, []))
+        if row["type"] == "song":
+            continue
+        key = _key(row["title"])
+        if "vaterunser" in key:
+            if prayer is None:
+                prayer = find_lords_prayer(matcher, root)
+            out.append(_auto_row(f"auto-vaterunser-{row['id']}", "song", "vaterunser", "Vaterunser", row["before"],
+                                 song={"songId": None, "arrangementId": None, "title": "Vaterunser",
+                                       "arrangement": "", "key": ""},
+                                 match=prayer.to_json()))
+        if key == "stille" or key.startswith("stille"):
+            out.append(_auto_row(f"auto-stille-{row['id']}", "media", "stille", "Stille-Bilder", row["before"],
+                                 media={"source": "silence", "kind": "image", "count": len(images)},
+                                 error=silence_error))
+    rest = files_after.get(None, [])
+    if rest:
+        out.append(_auto_row("auto-files", "header", "files", "Dateien aus ChurchTools"))
+        out.extend(rest)
+    return out
+
+
+# ------------------------------------------------------------------ Medien-Präsentationen
+
+BUNDLE_LIBRARY = "Ablaufplan"   # Bibliothek, unter der mitgelieferte Präsentationen verwiesen werden
+
+
+def image_size(path: Path) -> tuple[int, int]:
+    """Pixelgröße aus dem JPEG-/PNG-Kopf; Standard 1920×1080."""
+    import struct
+    try:
+        with open(path, "rb") as fh:
+            head = fh.read(26)
+            if head[:8] == b"\x89PNG\r\n\x1a\n":
+                return struct.unpack(">II", head[16:24])
+            if head[:2] == b"\xff\xd8":
+                fh.seek(2)
+                while True:
+                    marker, size = struct.unpack(">HH", fh.read(4))
+                    if 0xFFC0 <= marker <= 0xFFCF and marker not in (0xFFC4, 0xFFC8, 0xFFCC):
+                        h, w = struct.unpack(">xHH", fh.read(5))
+                        return w, h
+                    fh.seek(size - 2, 1)
+    except (OSError, struct.error):
+        pass
+    return 1920, 1080
+
+
+def find_soffice() -> str | None:
+    """LibreOffice (für PowerPoint -> PDF ohne Oberfläche)."""
+    import shutil
+    for cand in (shutil.which("soffice"), "/Applications/LibreOffice.app/Contents/MacOS/soffice",
+                 r"C:\Program Files\LibreOffice\program\soffice.exe"):
+        if cand and Path(cand).exists():
+            return cand
+    return None
+
+
+def pdf_to_images(pdf: Path, out_dir: Path, stem: str, width: int = 1920) -> list[Path]:
+    """Jede PDF-Seite als JPEG mit `width` Pixel Breite (PyMuPDF)."""
+    try:
+        import pymupdf
+    except ImportError as exc:
+        raise RuntimeError("PyMuPDF fehlt (pip install pymupdf)") from exc
+    out_dir.mkdir(parents=True, exist_ok=True)
+    images = []
+    with pymupdf.open(pdf) as doc:
+        for n, page in enumerate(doc, 1):
+            zoom = width / page.rect.width
+            target = out_dir / f"{stem} {n}.jpg"
+            page.get_pixmap(matrix=pymupdf.Matrix(zoom, zoom), alpha=False).save(target, jpg_quality=90)
+            images.append(target)
+    if not images:
+        raise RuntimeError("Die Datei hat keine Seiten.")
+    return images
+
+
+def _keynote_to_pdf(path: Path, out_dir: Path) -> Path:
+    """Rückfall ohne LibreOffice: Keynote per AppleScript (kann an Keynote-Dialogen hängen bleiben)."""
+    import plistlib
+    import subprocess
+    installed = set()
+    for app in Path("/Applications").glob("Keynote*.app"):
+        try:
+            installed.add(plistlib.loads((app / "Contents/Info.plist").read_bytes()).get("CFBundleIdentifier"))
+        except (OSError, ValueError):
+            pass
+    app_id = next((i for i in KEYNOTE_IDS if i in installed), None)
+    if sys.platform != "darwin" or app_id is None:
+        raise RuntimeError("Weder LibreOffice noch Keynote gefunden (brew install --cask libreoffice).")
+    target = out_dir / f"{path.stem}.pdf"
+    script = f'''on run argv
+  with timeout of 240 seconds
+    tell application id "{app_id}"
+      set doc to open (POSIX file (item 1 of argv))
+      export doc to (POSIX file (item 2 of argv)) as PDF
+      close doc saving no
+    end tell
+  end timeout
+end run'''
+    try:
+        res = subprocess.run(["osascript", "-", str(path), str(target)], input=script, text=True,
+                             capture_output=True, timeout=300)
+    except (OSError, subprocess.TimeoutExpired) as exc:
+        raise RuntimeError(f"Keynote nicht erreichbar: {exc}") from exc
+    if res.returncode != 0 or not target.exists():
+        hint = " (Keynote zeigt evtl. einen Dialog)" if "-1712" in res.stderr else ""
+        raise RuntimeError(f"Keynote konnte die Datei nicht umwandeln{hint}: {res.stderr.strip()[:200]}")
+    return target
+
+
+def slides_to_images(path: Path, out_dir: Path) -> list[Path]:
+    """PowerPoint/Keynote/PDF -> ein JPEG (1920 px breit) je Folie, benannt „<Datei> 1.jpg“ …
+
+    PowerPoint geht über LibreOffice headless nach PDF (keine Dialoge), sonst über Keynote.
+    Wirft RuntimeError, wenn das nicht geht.
+    """
+    import subprocess
+    out_dir.mkdir(parents=True, exist_ok=True)
+    if path.suffix.lower() == ".pdf":
+        return pdf_to_images(path, out_dir, path.stem)
+    soffice = find_soffice() if path.suffix.lower() != ".key" else None
+    if soffice:
+        pdf_dir = out_dir / "pdf"
+        # eigenes Profil: läuft auch, wenn LibreOffice gerade geöffnet ist
+        profile = (out_dir / "lo-profile").resolve().as_uri()
+        try:
+            res = subprocess.run([soffice, f"-env:UserInstallation={profile}", "--headless", "--norestore",
+                                  "--convert-to", "pdf", "--outdir", str(pdf_dir), str(path)],
+                                 capture_output=True, text=True, timeout=300)
+        except (OSError, subprocess.TimeoutExpired) as exc:
+            raise RuntimeError(f"LibreOffice nicht erreichbar: {exc}") from exc
+        pdf = pdf_dir / f"{path.stem}.pdf"
+        if res.returncode != 0 or not pdf.exists():
+            raise RuntimeError(f"LibreOffice konnte die Datei nicht umwandeln: {(res.stderr or res.stdout).strip()[:200]}")
+    else:
+        pdf = _keynote_to_pdf(path, out_dir)
+    return pdf_to_images(pdf, out_dir, path.stem)
+
+
+def _uid(*parts: str) -> str:
+    return str(uuid.uuid5(uuid.NAMESPACE_URL, "\x1f".join(("liederverwaltung-media",) + parts))).upper()
+
+
+def media_presentation(name: str, media: list[tuple[Path, str]], root: Path | None):
+    """Präsentation mit einer Folie je Medium (Bild / Video / Audio), wie ProPresenter Bilder importiert.
+
+    media: [(Datei, Name im Bundle unter Media/)]. Verweise: Media/Assets/<Name> im Arbeitsordner.
+    """
+    import action_pb2
+    from pro_export import get_template
+
+    pres = copy.deepcopy(get_template().base)
+    pres.uuid.string = _uid(name)
+    pres.name = name
+    group = pres.cue_groups.add()
+    group.group.uuid.string = _uid(name, "group")
+    group.group.name = name
+    for n, (path, bundle_name) in enumerate(media):
+        kind = media_kind(path.name)
+        cue = pres.cues.add()
+        cue.uuid.string = _uid(name, "cue", str(n))
+        cue.isEnabled = True
+        cue.completion_action_type = cue.COMPLETION_ACTION_TYPE_LAST
+        slide = cue.actions.add()
+        slide.uuid.string = _uid(name, "slide-action", str(n))
+        slide.isEnabled = True
+        slide.type = action_pb2.Action.ACTION_TYPE_PRESENTATION_SLIDE
+        slide.label.text = Path(bundle_name).stem
+        base = slide.slide.presentation.base_slide
+        base.uuid.string = _uid(name, "slide", str(n))
+        base.size.width, base.size.height = 1920, 1080
+        base.background_color.alpha = 1
+
+        act = cue.actions.add()
+        act.uuid.string = _uid(name, "media-action", str(n))
+        act.name = Path(bundle_name).stem
+        act.isEnabled = True
+        act.type = action_pb2.Action.ACTION_TYPE_MEDIA
+        el = act.media.element
+        el.uuid.string = _uid(name, "media", str(n))
+        _document_url(el.url, root, f"Media/Assets/{bundle_name}")
+        el.metadata.format = path.suffix.lstrip(".").upper()
+        if kind == "audio":
+            el.audio.SetInParent()
+            act.media.audio.SetInParent()
+        else:
+            w, h = image_size(path) if kind == "image" else (1920, 1080)
+            props = el.video if kind == "video" else el.image
+            props.drawing.natural_size.width, props.drawing.natural_size.height = w, h
+            (act.media.video if kind == "video" else act.media.image).SetInParent()
+            act.media.layer_type = act.media.LAYER_TYPE_FOREGROUND
+        group.cue_identifiers.add().string = cue.uuid.string
+
+    arr = pres.arrangements.add()
+    arr.uuid.string = _uid(name, "arrangement")
+    arr.name = "Standard"
+    arr.group_identifiers.add().string = group.group.uuid.string
+    pres.selected_arrangement.string = arr.uuid.string
+    return pres
+
+
+def _bundle_name(path: Path, taken: set[str]) -> str:
+    stem = re.sub(r'[\\/:*?"<>|]+', "_", nfc(path.stem)).strip() or "Datei"
+    name, n = f"{stem}{path.suffix.lower()}", 2
+    while name.casefold() in taken:
+        name, n = f"{stem} ({n}){path.suffix.lower()}", n + 1
+    taken.add(name.casefold())
+    return name
+
+
 # ------------------------------------------------------------------ .proplaylist
 
 
@@ -424,9 +754,25 @@ def _arrangement_uuid(path: Path) -> str:
     return pres.arrangements[0].uuid.string if pres.arrangements else ""
 
 
-def build_playlist(name: str, entries: list[dict], root: Path | None) -> propresenter_pb2.PlaylistDocument:
-    """entries: {"kind": "header", "name", "color"} | {"kind": "presentation", "name", "rel"}."""
-    from pro_export import get_template  # App-Version wie bei den exportierten Liedern
+def build_playlist(name: str, entries: list[dict], root: Path | None,
+                   bundle: dict[str, bytes | Path] | None = None,
+                   embed_presentations: bool = False) -> propresenter_pb2.PlaylistDocument:
+    """entries: {"kind": "header", "name", "color"} | {"kind": "presentation", "name", "rel"}
+    | {"kind": "media", "name", "files": [Path]} -> neue Präsentation, die samt Medien in `bundle` landet
+    (Zip-Pfad -> Inhalt, wie bei ProPresenters eigenem Playlist-Export: <Name>.pro und Media/<Datei>).
+    embed_presentations: auch die .pro-Dateien der Lieder neben `data` packen (nötig unter Windows).
+    """
+    from pro_export import get_template, file_stem, unique_stem  # App-Version wie bei den exportierten Liedern
+
+    bundle = {} if bundle is None else bundle
+    taken_pro: set[str] = set()
+    taken_media: set[str] = set()
+    if embed_presentations and root:
+        for e in entries:
+            f = root / e["rel"] if e["kind"] == "presentation" else None
+            if f and f.is_file() and nfc(f.stem).casefold() not in taken_pro:
+                taken_pro.add(nfc(f.stem).casefold())
+                bundle[nfc(f.name)] = f
 
     doc = propresenter_pb2.PlaylistDocument()
     doc.application_info.CopyFrom(get_template().base.application_info)
@@ -455,20 +801,43 @@ def build_playlist(name: str, entries: list[dict], root: Path | None) -> propres
             arrangement = _arrangement_uuid(root / e["rel"]) if root else ""
             if arrangement:
                 item.presentation.arrangement.string = arrangement
+        elif e["kind"] == "media":
+            media = [(f, _bundle_name(f, taken_media)) for f in e["files"]]
+            stem = unique_stem(file_stem(e["name"]), taken_pro)
+            pres = media_presentation(e["name"], media, root)
+            bundle[f"{stem}.pro"] = pres.SerializeToString()
+            for f, bundle_name in media:
+                bundle[f"Media/{bundle_name}"] = f
+            _document_url(item.presentation.document_path, root, f"Libraries/{BUNDLE_LIBRARY}/{stem}.pro")
         else:
             _set_color(item.header.color, e.get("color") or DEFAULT_ITEM_COLOR)
     return doc
 
 
-def playlist_entries(rows: list[dict], settings: PlaylistSettings, docs_by_rel: dict[str, Doc]) -> tuple[list[dict], list[str]]:
-    """Zeilen aus der Oberfläche (mit include/choice) -> Playlist-Einträge + Hinweise."""
+def playlist_entries(rows: list[dict], settings: PlaylistSettings, docs_by_rel: dict[str, Doc],
+                     resolve_media=None) -> tuple[list[dict], list[str]]:
+    """Zeilen aus der Oberfläche (mit include/choice) -> Playlist-Einträge + Hinweise.
+
+    resolve_media(row) -> [Path]: Dateien einer Medien-Zeile (lädt z. B. aus ChurchTools); wirft RuntimeError.
+    """
     entries, notes = [], []
     for row in rows:
         if not row.get("include", True):
             continue
         kind = row.get("type")
         title = (row.get("title") or "").strip()
-        if kind == "song":
+        if kind == "media":
+            try:
+                files = resolve_media(row) if resolve_media else []
+            except RuntimeError as exc:
+                notes.append(f"„{title}“: {exc} – übersprungen.")
+                continue
+            if files:
+                name = Path(title).stem if (row.get("media") or {}).get("source") == "ct" else title
+                entries.append({"kind": "media", "name": name, "files": files})
+            else:
+                notes.append(f"„{title}“: keine Dateien – übersprungen.")
+        elif kind == "song":
             rel = row.get("rel") or ""
             d = docs_by_rel.get(rel)
             if d:
@@ -486,18 +855,16 @@ def playlist_entries(rows: list[dict], settings: PlaylistSettings, docs_by_rel: 
     return entries, notes
 
 
-def to_proplaylist(doc: propresenter_pb2.PlaylistDocument, files: list[Path] | None = None) -> bytes:
-    """files: .pro-Dateien, die wie bei ProPresenters Export neben `data` ins Paket kommen."""
+def to_proplaylist(doc: propresenter_pb2.PlaylistDocument, bundle: dict[str, bytes | Path] | None = None) -> bytes:
+    """ZIP (unkomprimiert) mit `data`; plus mitgelieferte Präsentationen und Medien (bundle)."""
     buf = io.BytesIO()
-    with zipfile.ZipFile(buf, "w", zipfile.ZIP_STORED) as zf:
+    with zipfile.ZipFile(buf, "w", zipfile.ZIP_STORED, allowZip64=True) as zf:
         zf.writestr("data", doc.SerializeToString())
-        seen: set[str] = set()
-        for f in files or []:
-            name = nfc(f.name)
-            if name.casefold() in seen or not f.is_file():
-                continue
-            seen.add(name.casefold())
-            zf.write(f, name)
+        for name, content in (bundle or {}).items():
+            if isinstance(content, Path):
+                zf.write(content, name)
+            else:
+                zf.writestr(name, content)
     return buf.getvalue()
 
 

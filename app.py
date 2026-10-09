@@ -15,6 +15,7 @@ from __future__ import annotations
 import argparse
 import csv
 import io
+import tempfile
 import json
 import os
 import threading
@@ -527,15 +528,23 @@ def ct_plan(event_id: int):
         return _ct_error(exc, client.base_url)
     if agenda is None:
         return error("Für diesen Termin gibt es keinen Ablaufplan.", 404)
+    notes = []
+    try:
+        files = client.event_files(event_id)
+    except (dl.ChurchToolsError, requests.RequestException) as exc:
+        files = []
+        notes.append(f"Dateien am Termin nicht abrufbar: {exc}")
     settings, root, docs = _library()
     matcher = playlist.Matcher(docs, settings.library_order)
     # Name/Beginn kommen aus der Terminliste der Oberfläche (spart eine zweite Abfrage).
     ev = {"name": request.args.get("name") or agenda.get("name") or "", "startDate": request.args.get("start") or ""}
+    items = playlist.plan_items(agenda, matcher, settings.fuzzy)
     return jsonify({
         "agenda": {"id": agenda.get("id"), "name": agenda.get("name") or "", "isFinal": bool(agenda.get("isFinal"))},
-        "items": playlist.plan_items(agenda, matcher, settings.fuzzy),
+        "items": playlist.add_auto_rows(items, matcher, root, settings, files),
         "playlistName": playlist.default_playlist_name(ev, agenda),
         "libraryFound": bool(docs),
+        "notes": notes,
     })
 
 
@@ -556,6 +565,7 @@ def playlist_library():
         "songDirCount": len(pp_sync.pp_files(song_dir)),
         "docs": [d.to_json() for d in docs],
         "settings": settings.to_dict(),
+        "silenceCount": len(playlist.silence_images(settings)),
     })
 
 
@@ -566,8 +576,41 @@ def put_playlist_settings():
         return error(f"Im Ordner „{settings.show_root}“ gibt es keinen Unterordner „Libraries“.")
     if settings.song_library and not Path(settings.song_library).expanduser().is_dir():
         return error(f"Den Ordner „{settings.song_library}“ gibt es nicht.")
+    if settings.silence_dir and not Path(settings.silence_dir).expanduser().is_dir():
+        return error(f"Den Ordner „{settings.silence_dir}“ gibt es nicht.")
     playlist.save_settings(settings)
     return playlist_library()
+
+
+def _media_files(row: dict, settings: playlist.PlaylistSettings, tmp: Path) -> list[Path]:
+    """Dateien einer Medien-Zeile: Stille-Bilder aus dem Ordner bzw. Datei vom Termin (aus ChurchTools geladen).
+
+    PowerPoint/Keynote wird über Keynote in eine Folge von JPEGs umgewandelt.
+    """
+    media = row.get("media") or {}
+    if media.get("source") == "silence":
+        files = playlist.silence_images(settings)
+        if not files:
+            raise RuntimeError("keine Stille-Bilder (Ordner unter Einstellungen festlegen)")
+        return files
+    if media.get("source") != "ct":
+        raise RuntimeError("unbekannte Quelle")
+    name = Path(str(media.get("name") or "Datei")).name
+    kind = playlist.media_kind(name)
+    if not kind:
+        raise RuntimeError("Dateityp wird nicht unterstützt")
+    client = ct.get()
+    if client is None:
+        raise RuntimeError("nicht bei ChurchTools angemeldet")
+    target = tmp / str(media.get("fileId")) / name
+    target.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        client.download(client.file_url(str(media.get("fileId"))), target)
+    except (dl.ChurchToolsError, requests.RequestException) as exc:
+        raise RuntimeError(f"Download fehlgeschlagen ({exc})") from exc
+    if kind == "slides":
+        return playlist.slides_to_images(target, target.parent / "Folien")
+    return [target]
 
 
 @app.post("/api/playlist")
@@ -580,12 +623,17 @@ def make_playlist():
         return error("Der Ablaufplan ist leer.")
     settings, root, docs = _library()
     if isinstance(data.get("settings"), dict):
-        settings = playlist.PlaylistSettings.from_dict({**settings.to_dict(), **data["settings"]})
-    entries, notes = playlist.playlist_entries(rows, settings, {d.rel: d for d in docs})
-    if not entries:
-        return error("Keine Einträge ausgewählt.")
-    files = [root / e["rel"] for e in entries if e["kind"] == "presentation"] if root and settings.embed_presentations else []
-    body = playlist.to_proplaylist(playlist.build_playlist(name, entries, root), files)
+        # Ordner nur aus den gespeicherten Einstellungen, nicht aus dem Request
+        settings = playlist.PlaylistSettings.from_dict({**settings.to_dict(), **data["settings"],
+                                                        "silence_dir": settings.silence_dir})
+    with tempfile.TemporaryDirectory(prefix="ablaufplan-") as tmp:
+        entries, notes = playlist.playlist_entries(rows, settings, {d.rel: d for d in docs},
+                                                   lambda row: _media_files(row, settings, Path(tmp)))
+        if not entries:
+            return error("Keine Einträge ausgewählt.")
+        bundle: dict = {}
+        doc = playlist.build_playlist(name, entries, root, bundle, settings.embed_presentations)
+        body = playlist.to_proplaylist(doc, bundle)
     resp = send_file(io.BytesIO(body), mimetype="application/octet-stream", as_attachment=True,
                      download_name=f"{dl.safe_filename(name)}.proPlaylist")
     resp.headers["X-Playlist-Items"] = str(len(entries))

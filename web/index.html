@@ -42,7 +42,6 @@ nav.main svg { width: 16px; height: 16px; flex: none; }
 .subnav { display: inline-flex; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 3px; gap: 2px; }
 .subnav button { border: 0; background: none; padding: 6px 16px; border-radius: 7px; cursor: pointer; color: var(--muted); font-size: 14px; }
 .subnav button.active { background: var(--accent); color: var(--accent-text); font-weight: 600; }
-.subbar .hint { font-size: 13px; color: var(--muted); }
 main { padding: 14px 24px 24px; max-width: 1320px; margin: 0 auto; --chrome: 150px; }
 .tab[hidden] { display: none !important; }
 .page-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 14px; }
@@ -280,7 +279,7 @@ details.token summary { cursor: pointer; font-size: 13px; color: var(--muted); m
 @media (max-width: 860px) {
   header { gap: 10px; padding: 0 12px; } header h1, .ct-pill span { display: none; }
   nav.main { overflow-x: auto; scrollbar-width: none; } nav.main button { white-space: nowrap; padding: 7px 9px; }
-  .subbar { padding: 10px 16px 0; } .subbar .hint { display: none; }
+  .subbar { padding: 10px 16px 0; }
   main { padding: 12px 16px; }
   .settings { grid-template-columns: 1fr; } .rows .diff { grid-template-columns: 1fr; }
   .library, .editor, .import, .grid2, .exporter, .planner { grid-template-columns: 1fr; height: auto; }
@@ -302,7 +301,7 @@ details.token summary { cursor: pointer; font-size: 13px; color: var(--muted); m
   </nav>
   <button class="ct-pill" id="ct-pill" title="ChurchTools-Anmeldung (Einstellungen)"><i></i><span>ChurchTools: nicht angemeldet</span></button>
 </header>
-<div class="subbar" id="subbar" hidden><div class="subnav" id="subnav"></div><span class="hint" id="subhint"></span></div>
+<div class="subbar" id="subbar" hidden><div class="subnav" id="subnav"></div></div>
 
 <main>
   <!-- ======================= Lieder ======================= -->
@@ -403,20 +402,11 @@ details.token summary { cursor: pointer; font-size: 13px; color: var(--muted); m
           <div class="field"><label for="pl-name">Name der Playlist</label><input type="text" id="pl-name"></div>
           <button class="btn primary" id="pl-start" style="width:100%" disabled>.proPlaylist herunterladen</button>
           <div id="pl-msg" style="margin-top:8px"></div>
-          <p class="muted" style="font-size:12px">Lieder verweisen auf die Präsentationen, die schon in deiner ProPresenter-Bibliothek liegen (Zuordnung über den Namen) – sie werden nicht neu aus ChurchTools erzeugt. Importieren wie die Playlist aus ChurchTools.</p>
 
-          <fieldset><legend>Übernehmen</legend>
-            <label class="check" style="margin-bottom:6px;font-size:13px"><input type="checkbox" data-pl="include_normal"> Normale Ablaufpunkte als Kopfzeile</label>
-            <label class="check" style="margin-bottom:6px;font-size:13px"><input type="checkbox" data-pl="include_before"> Punkte vor Beginn</label>
-            <label class="check" style="margin-bottom:6px;font-size:13px"><input type="checkbox" data-pl="missing_as_header"> Fehlende Lieder als Kopfzeile mit Hinweis</label>
-            <label class="check" style="margin-bottom:6px;font-size:13px"><input type="checkbox" data-pl="fuzzy"> Ähnliche Namen automatisch zuordnen</label>
-            <label class="check" style="margin-bottom:6px;font-size:13px" title="Wie beim Export aus ProPresenter – nötig, damit die Lieder unter Windows erscheinen"><input type="checkbox" data-pl="embed_presentations"> Lieder-Dateien in die Playlist packen</label>
+          <fieldset style="margin-top:12px"><legend>Automatisch einfügen</legend>
+            <label class="check" style="margin-bottom:6px;font-size:13px"><input type="checkbox" data-pl="add_lords_prayer"> Vaterunser unter „Vaterunser“</label>
+            <label class="check" style="margin-bottom:6px;font-size:13px"><input type="checkbox" data-pl="add_silence"> Stille-Bilder unter „Stille“</label>
           </fieldset>
-          <fieldset><legend>Farben der Kopfzeilen</legend>
-            <div class="st-row"><span>Überschrift</span><input type="color" data-pl="header_color"></div>
-            <div class="st-row"><span>Normaler Punkt</span><input type="color" data-pl="item_color"></div>
-          </fieldset>
-          <p class="muted" style="font-size:12px">ProPresenter-Ordner und Reihenfolge der Bibliotheken: <a href="#" data-goto="settings">Einstellungen</a>.</p>
         </div>
       </div>
     </div>
@@ -566,6 +556,11 @@ details.token summary { cursor: pointer; font-size: 13px; color: var(--muted); m
             <button class="btn small" id="pl-root-save">Übernehmen</button></div>
             <div class="muted" id="pl-root-info" style="font-size:12px;margin-top:4px"></div></div>
         </details>
+        <div class="field"><label for="s-silence">Ordner mit Stille-Bildern (.jpg/.png)</label>
+          <div class="path-row"><input type="text" id="s-silence" placeholder="z. B. ~/Pictures/Stille" spellcheck="false">
+            <button class="btn small" id="s-silence-save">Übernehmen</button></div>
+          <div class="muted" id="s-silence-info" style="font-size:12px;margin-top:4px"></div>
+        </div>
         <fieldset><legend>Bibliotheken (Reihenfolge für Ablaufpläne)</legend>
           <p class="muted" style="font-size:12px;margin:0 0 6px">Gibt es ein Lied in mehreren Bibliotheken, gewinnt die obere.</p>
           <ul class="lib-order" id="pl-libs"></ul>
@@ -604,9 +599,9 @@ async function api(path, opts = {}) {
 /* ---------------- Navigation ---------------- */
 // Hauptbereiche mit Unterreitern; jede Ansicht ist eine <section id="tab-…">.
 const AREAS = {
-  lieder: {views: [["songs", "Bibliothek"], ["edit", "Neues Lied"]], hint: "Alle Lieder dieses Programms – aus ChurchTools importiert oder von Hand erfasst."},
-  ct: {views: [["plan", "Ablaufpläne"], ["import", "Lieder-Import"]], hint: "Ablaufpläne ansehen und exportieren, neue Lieder aus ChurchTools holen."},
-  pp: {views: [["ppdiff", "Abgleich"], ["export", "Export & Formatierung"]], hint: "Liederdatenbank mit der ProPresenter-Bibliothek abgleichen und Lieder als .pro exportieren."},
+  lieder: {views: [["songs", "Bibliothek"], ["edit", "Neues Lied"]]},
+  ct: {views: [["plan", "Ablaufpläne"], ["import", "Lieder-Import"]]},
+  pp: {views: [["ppdiff", "Abgleich"], ["export", "Export & Formatierung"]]},
   settings: {views: [["settings", "Einstellungen"]]},
 };
 const areaOf = view => Object.keys(AREAS).find(a => AREAS[a].views.some(([v]) => v === view)) || "lieder";
@@ -621,7 +616,6 @@ function showTab(name) {
   document.querySelectorAll("nav.main button").forEach(b => b.classList.toggle("active", b.dataset.main === area));
   $("#subbar").hidden = def.views.length < 2;
   $("#subnav").innerHTML = def.views.map(([v, l]) => `<button data-view="${v}" class="${v === name ? "active" : ""}">${esc(l)}</button>`).join("");
-  $("#subhint").textContent = def.hint || "";
   document.querySelector("main").style.setProperty("--chrome", def.views.length < 2 ? "100px" : "150px");
   document.querySelectorAll(".tab").forEach(t => t.hidden = t.id !== "tab-" + name);
   store.set("tab", name);
@@ -930,6 +924,7 @@ const STYLE_FORM = [
     ["lines_per_slide", "Zeilen pro Folie", "number", {min: 1, max: 12}],
     ["pairs_per_slide", "Zeilenpaare (zweisprachig)", "number", {min: 1, max: 6}],
     ["background", "Hintergrund", "color"],
+    ["blank_first", "Leere Folie vor dem Liedtext", "check"],
   ]],
   ["Liedtext", [
     ["main.font", "Schriftart", "font"],
@@ -1365,6 +1360,9 @@ $("#ev-reload").onclick = loadEvents;
 ["#ev-from", "#ev-to"].forEach(s => $(s).onchange = loadEvents);
 
 function defaultInclude(row) {
+  if (row.auto === "vaterunser") return !!plSettings.add_lords_prayer;
+  if (row.auto === "stille") return !!plSettings.add_silence && !row.error;
+  if (row.type === "media") return !row.error;
   if (row.before && !plSettings.include_before) return false;
   if (row.type === "normal") return plSettings.include_normal;
   return true;
@@ -1389,7 +1387,9 @@ async function loadPlan(ev) {
         rel: old && old.manual ? old.rel : (m && m.doc ? m.doc.rel : ""), manual: old ? old.manual : false};
     })};
     $("#pl-name").value = data.playlistName;
-    if (!data.libraryFound) $("#plan-msg").innerHTML = '<div class="notice warn" style="margin-top:12px">Keine ProPresenter-Bibliothek gefunden – rechts den ProPresenter-Ordner angeben.</div>';
+    const msgs = (data.notes || []).slice();
+    if (!data.libraryFound) msgs.unshift('Keine ProPresenter-Bibliothek gefunden – den Ordner unter <a href="#" data-goto="settings">Einstellungen</a> angeben.');
+    $("#plan-msg").innerHTML = msgs.map(m => `<div class="notice warn" style="margin-top:12px">${m.includes("<a ") ? m : esc(m)}</div>`).join("");
     renderPlan();
   } catch (err) {
     if (needsLogin(err)) { $("#plan-list").innerHTML = ""; }
@@ -1415,7 +1415,16 @@ function renderPlan() {
   $("#plan-list").innerHTML = rows.map((r, i) => {
     const sub = [r.before ? "vor Beginn" : "", fmtDur(r.duration), r.responsible].filter(Boolean).map(esc).join(" · ");
     let body;
-    if (r.type === "song") {
+    const auto = r.auto && r.auto !== "files" ? ' <span class="badge info" title="Automatisch eingefügt">auto</span>' : "";
+    if (r.type === "media") {
+      const md = r.media || {};
+      const what = md.source === "silence" ? `${md.count || 0} ${md.count === 1 ? "Bild" : "Bilder"} aus dem Stille-Ordner`
+        : md.kind === "slides" ? (/\.pdf$/i.test(md.name || "") ? "PDF → Bilder" : "Präsentation → Bilder")
+        : {image: "Bild", video: "Video", audio: "Audio"}[md.kind] || "Datei";
+      body = `<div class="ttl"><span>${md.source === "silence" ? "◐" : "📎"} ${esc(r.title)}</span>${auto}</div>
+        <div class="sub">${esc(what)}${md.source === "ct" ? " · aus ChurchTools" : ""}</div>
+        ${r.error ? `<div class="match"><span class="badge danger">${esc(r.error)}</span>${md.source === "silence" ? ' <a href="#" class="linkbtn" data-goto="settings">Einstellungen</a>' : ""}</div>` : ""}`;
+    } else if (r.type === "song") {
       const st = rowStatus(r), doc = docByRel.get(r.rel);
       const name = doc ? `${doc.library} / ${doc.name}` : "";
       const chip = {
@@ -1427,7 +1436,7 @@ function renderPlan() {
       }[st];
       const alts = (r.manual ? [] : (r.match.candidates || [])).slice(0, 3)
         .map(c => `<button class="linkbtn" data-alt="${i}" data-rel="${esc(c.rel)}">${esc(c.library)} / ${esc(c.name)}</button>`).join(" ");
-      body = `<div class="ttl"><span>♪ ${esc(r.title)}</span>${r.song.arrangement ? `<span class="badge">${esc(r.song.arrangement)}</span>` : ""}</div>
+      body = `<div class="ttl"><span>♪ ${esc(r.title)}</span>${r.song.arrangement ? `<span class="badge">${esc(r.song.arrangement)}</span>` : ""}${auto}</div>
         ${sub ? `<div class="sub">${sub}</div>` : ""}
         <div class="match">${chip}<button class="linkbtn" data-pick="${i}">ändern</button>
           ${alts ? `<span class="muted">auch:</span> ${alts}` : ""}</div>
@@ -1445,8 +1454,7 @@ function renderPlan() {
   const count = st => songsIn.filter(r => rowStatus(r) === st).length;
   const ok = count("exact") + count("normalized") + count("manual"), sim = count("similar"), miss = count("missing");
   $("#plan-stats").innerHTML = `<span class="badge covered">${ok} ${ok === 1 ? "Lied" : "Lieder"} zugeordnet</span>` +
-    (sim ? `<span class="badge missing">${sim} ähnlich</span>` : "") + (miss ? `<span class="badge danger">${miss} ${miss === 1 ? "fehlt" : "fehlen"}</span>` : "") +
-    `<span class="badge">${rows.filter(r => r.type !== "song" && r.include).length} Kopfzeilen</span>`;
+    (sim ? `<span class="badge missing">${sim} ähnlich</span>` : "") + (miss ? `<span class="badge danger">${miss} ${miss === 1 ? "fehlt" : "fehlen"}</span>` : "");
   const status = plan.agenda.isFinal ? "" : " · Entwurf";
   $("#plan-sub").textContent = fmtDate(plan.event.start) + status;
   $("#pl-start").disabled = !rows.some(r => r.include);
@@ -1494,6 +1502,10 @@ function applyLibrary(data) {
   $("#s-songlib-info").innerHTML = data.songDirOk
     ? `<span style="color:var(--ok)">✓</span> ${esc(data.songDir)} · ${data.songDirCount} Lieder (.pro)`
     : '<span style="color:var(--danger)">Keine Lieder-Bibliothek gefunden – bitte den Ordner eintragen.</span>';
+  $("#s-silence").value = plSettings.silence_dir;
+  $("#s-silence-info").innerHTML = !plSettings.silence_dir ? "Wird im Ablaufplan unter dem Punkt „Stille“ eingefügt."
+    : data.silenceCount ? `<span style="color:var(--ok)">✓</span> ${data.silenceCount} Bilder`
+    : '<span style="color:var(--danger)">Keine .jpg/.png-Bilder in diesem Ordner.</span>';
   $("#s-libpick-field").hidden = !data.libraryDirs.length;
   $("#s-libpick").innerHTML = '<option value="">– Bibliothek auswählen –</option>' +
     data.libraryDirs.map(d => `<option value="${esc(d.path)}" ${d.path === data.songDir ? "selected" : ""}>${esc(d.name)}</option>`).join("");
@@ -1523,6 +1535,8 @@ document.querySelectorAll("[data-pl]").forEach(el => el.onchange = () => {
   plSettings[key] = el.type === "checkbox" ? el.checked : el.value;
   if (plan && (key === "include_normal" || key === "include_before"))
     plan.rows.forEach(r => { if (!r.touched) r.include = defaultInclude(r); });
+  const auto = {add_lords_prayer: "vaterunser", add_silence: "stille"}[key];
+  if (plan && auto) plan.rows.forEach(r => { if (r.auto === auto) { r.include = defaultInclude(r); r.touched = false; } });
   savePlSettings(key === "fuzzy");
 });
 $("#pl-libs").onclick = e => {
@@ -1540,16 +1554,23 @@ $("#s-songlib-save").onclick = async () => {
   if (await savePlSettings(true)) $("#s-pp-msg").innerHTML = '<div class="notice ok">Gespeichert.</div>';
 };
 $("#s-songlib").onkeydown = e => { if (e.key === "Enter") $("#s-songlib-save").click(); };
+$("#s-silence-save").onclick = async () => {
+  plSettings.silence_dir = $("#s-silence").value.trim();
+  if (await savePlSettings(true)) $("#s-pp-msg").innerHTML = '<div class="notice ok">Gespeichert.</div>';
+};
+$("#s-silence").onkeydown = e => { if (e.key === "Enter") $("#s-silence-save").click(); };
 $("#s-libpick").onchange = e => { if (e.target.value) { $("#s-songlib").value = e.target.value; $("#s-songlib-save").click(); } };
 
 $("#pl-start").onclick = async () => {
   if (!plan) return;
   const btn = $("#pl-start");
-  btn.disabled = true; $("#pl-msg").innerHTML = "";
+  btn.disabled = true;
+  const slow = plan.rows.some(r => r.include && r.type === "media" && r.media && r.media.source === "ct");
+  $("#pl-msg").innerHTML = slow ? '<div class="muted" style="font-size:13px">Dateien werden aus ChurchTools geladen (Präsentationen werden in Bilder umgewandelt) …</div>' : "";
   try {
     const res = await fetch("/api/playlist", {method: "POST", headers: {"Content-Type": "application/json"},
       body: JSON.stringify({name: $("#pl-name").value, settings: plSettings,
-        items: plan.rows.map(r => ({type: r.type, title: r.title, include: r.include, rel: r.type === "song" ? r.rel : ""}))})});
+        items: plan.rows.map(r => ({type: r.type, title: r.title, include: r.include, rel: r.type === "song" ? r.rel : "", media: r.media || null}))})});
     if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || `HTTP ${res.status}`);
     const blob = await res.blob();
     const m = (res.headers.get("Content-Disposition") || "").match(/filename\*=UTF-8''([^;]+)|filename="?([^";]+)/i);
