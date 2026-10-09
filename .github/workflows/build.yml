@@ -63,11 +63,17 @@ jobs:
           cp dist/Liedbruecke* pkg/
           cp ANLEITUNG.md pkg/
           cp propresenterFormatter/LICENSE-ProPresenter7-Proto pkg/
-          cd pkg && 7z a ../Liedbruecke-${{ matrix.name }}.zip . > /dev/null
+          (cd pkg && 7z a ../Liedbruecke-${{ matrix.name }}.zip . > /dev/null)
+          # Übergang vom alten Namen: Version 2026.10.09.8 sucht „Liederverwaltung-*.zip“ mit „Liederverwaltung*“ darin.
+          mkdir -p legacy
+          for f in dist/Liedbruecke*; do cp "$f" "legacy/$(basename "$f" | sed 's/^Liedbruecke/Liederverwaltung/')"; done
+          (cd legacy && 7z a ../Liederverwaltung-${{ matrix.name }}.zip . > /dev/null)
       - uses: actions/upload-artifact@v4
         with:
           name: Liedbruecke-${{ matrix.name }}
-          path: Liedbruecke-${{ matrix.name }}.zip
+          path: |
+            Liedbruecke-${{ matrix.name }}.zip
+            Liederverwaltung-${{ matrix.name }}.zip
 
   release:
     if: github.ref == 'refs/heads/master'
