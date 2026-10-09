@@ -2,8 +2,7 @@
 
 **Die Brücke zwischen ChurchTools und ProPresenter 7.**
 SongBridge holt die Lieder (SongBeamer-Dateien) aus ChurchTools, wandelt sie in ProPresenter-Präsentationen um
-und macht aus dem Ablaufplan eines Gottesdienstes mit einem Klick eine fertige ProPresenter-Playlist –
-inklusive Predigtfolien, Vaterunser und Stille-Bild.
+und macht aus dem Ablaufplan eines Gottesdienstes mit einem Klick eine fertige ProPresenter-Playlist.
 
 
 
