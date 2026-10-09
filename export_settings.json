@@ -44,6 +44,8 @@
     "Verse 3": "D",
     "Verse 4": "F",
     "Verse 5": "G",
-    "Verse 6": "H"
-  }
+    "Verse 6": "H",
+    "Misc": "B"
+  },
+  "blank_first": true
 }

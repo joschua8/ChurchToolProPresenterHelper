@@ -33,9 +33,11 @@ from sng import Section, Song, read_sng
 import graphicsData_pb2  # noqa: E402  (über propresenterFormatter im Suchpfad)
 import hotKey_pb2  # noqa: E402
 
-BASE_DIR = Path(__file__).resolve().parent
-TEMPLATE_PATH = BASE_DIR / "examples" / "BeispielZielFormatierung.json"
-SETTINGS_PATH = Path(os.environ.get("EXPORT_SETTINGS", BASE_DIR / "export_settings.json"))
+from paths import DATA_DIR, RES_DIR  # noqa: E402
+
+BASE_DIR = DATA_DIR
+TEMPLATE_PATH = RES_DIR / "examples" / "BeispielZielFormatierung.json"
+SETTINGS_PATH = Path(os.environ.get("EXPORT_SETTINGS", DATA_DIR / "export_settings.json"))
 SLIDE_W, SLIDE_H = 1920, 1080
 
 # Deterministische UUIDs: gleiches Lied -> gleiche IDs bei jedem Export.
@@ -69,6 +71,8 @@ GROUP_COLORS = {
     "Misc": (0.5, 0, 1),
     "Tag": (0.5, 0, 1),
 }
+# Leere Folie vor dem Liedtext (eigene Gruppe am Anfang des Arrangements).
+BLANK_LABEL, BLANK_NAME, BLANK_COLOR = "__blank__", "Blank", (0.2, 0.2, 0.2)
 NOTE_ABBR = {
     "Verse": "V", "Chorus": "CHO", "Pre-Chorus": "PRE", "Bridge": "BRI", "Intro": "INT",
     "Outro": "OUT", "Interlude": "INS", "Instrumental": "INS", "Coda": "CODA", "Misc": "MISC", "Tag": "TAG",
@@ -91,6 +95,7 @@ DEFAULT_HOTKEYS = {
     "Tag": "T",
     "Outro": "O",
     "Intro": "N",
+    "Misc": "B",  # SongBeamer „Unbekannt“/„Teil“ – meist eine Bridge
 }
 # Gruppentypen, die unter anderem Namen in der Tabelle stehen (Refrain/Zwischenspiel sind schon beim Einlesen Chorus/Interlude).
 HOTKEY_ALIASES = {"Instrumental": "Interlude", "Ending": "Outro"}
@@ -137,6 +142,7 @@ class ExportStyle:
     box_opacity: float = 1.0
     shadow: bool = False          # Textschatten (im Beispiel konfiguriert, aber aus)
     shrink_to_fit: bool = False   # ProPresenter verkleinert Schrift, wenn der Text nicht passt
+    blank_first: bool = True      # leere Folie vor dem Liedtext
     hotkeys_enabled: bool = True  # Tastenkürzel wie im Beispiel setzen
     hotkeys: dict = field(default_factory=lambda: dict(DEFAULT_HOTKEYS))  # Gruppenname -> Taste
 
@@ -389,6 +395,8 @@ def arrangement_notes(order: list[str]) -> str:
     """Kurzform der Reihenfolge wie im Beispiel: „V1 - V2 - CHO - V3 - CHO 2x“."""
     parts: list[list] = []
     for lbl in order:
+        if lbl == BLANK_LABEL:
+            continue
         t = section_type(lbl)
         num = re.search(r"(\d+)$", lbl)
         abbr = NOTE_ABBR.get(t, t.upper())
@@ -427,6 +435,9 @@ def song_groups(song: Song, style: ExportStyle) -> tuple[list[Group], list[str]]
               section_slides(by_label[lbl], song.lang_count, style))
         for lbl in seen
     ]
+    if style.blank_first:
+        groups.insert(0, Group(BLANK_LABEL, BLANK_NAME, BLANK_COLOR, [[]]))
+        order = [BLANK_LABEL] + order
     return groups, order
 
 

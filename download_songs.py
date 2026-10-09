@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
-"""Lädt alle SongBeamer-Dateien (.sng) aus der ChurchTools-Liederdatenbank herunter.
+"""Lädt SongBeamer-Dateien (.sng) aus der ChurchTools-Liederdatenbank herunter.
+
+Es werden nur neue und geänderte Lieder geladen (Abgleich über churchtools_index.json),
+mit --all alle.
 
 Lieder ohne hinterlegte .sng-Datei werden in einem Bericht (fehlende_sng.csv)
 aufgeführt und am Ende auf der Konsole ausgegeben.
@@ -141,6 +144,29 @@ class ChurchToolsClient:
             raise ChurchToolsError(f"Ablaufplan nicht abrufbar (HTTP {resp.status_code}): {_api_message(resp)}")
         return resp.json().get("data") or None
 
+    def event_files(self, event_id: int | str) -> list[dict]:
+        """Dateien am Termin (Reiter „Dateien“ im Ablauf): [{id, name}]. Links ohne Datei fallen weg."""
+        data = self._get_data(f"events/{event_id}", "Termin").get("data") or {}
+        files = []
+        for f in data.get("eventFiles") or []:
+            if (f.get("domainType") or "file") != "file" or not f.get("domainIdentifier"):
+                continue
+            files.append({"id": str(f["domainIdentifier"]), "name": (f.get("title") or "").strip(),
+                          "url": f.get("frontendUrl") or ""})
+        return files
+
+    def file_meta(self, file_id: str, title: str = "") -> tuple[str, str]:
+        """Download-Adresse und echter Dateiname (GET /files/{id}/meta -> fileUrl, name).
+
+        Vorsicht: „filename“ ist bei ChurchTools der interne Speichername (64-stelliger Hash ohne Endung),
+        der echte Name steht in „name“. Der „title“ am Termin ist nur ein Anzeigename.
+        """
+        data = self._get_data(f"files/{file_id}/meta", "Datei").get("data") or {}
+        url = data.get("fileUrl") or ""
+        if not url:
+            raise ChurchToolsError(f"Datei {file_id}: keine Download-Adresse")
+        return url, file_display_name(data.get("name"), title, data.get("filename"))
+
     def download(self, file_url: str, target: Path) -> None:
         if not file_url.startswith("http"):
             file_url = f"{self.base_url}/{file_url.lstrip('/')}"
@@ -152,6 +178,15 @@ class ChurchToolsClient:
                 for chunk in resp.iter_content(chunk_size=65536):
                     fh.write(chunk)
             tmp.replace(target)
+
+
+_EXT_RE = re.compile(r"\.[A-Za-z0-9]{2,5}$")
+
+
+def file_display_name(*candidates: str | None) -> str:
+    """Erster Name mit Dateiendung, sonst der erste überhaupt (Reihenfolge = Vorrang)."""
+    names = [c.strip() for c in candidates if c and c.strip()]
+    return next((n for n in names if _EXT_RE.search(n)), names[0] if names else "")
 
 
 def safe_filename(name: str) -> str:
@@ -175,68 +210,221 @@ class Result:
     missing: list[dict] = field(default_factory=list)
     failed: list[tuple[str, str]] = field(default_factory=list)
     index: dict[str, dict] = field(default_factory=dict)
+    skipped: int = 0
+    deleted: list[str] = field(default_factory=list)
 
 
-def run(client: ChurchToolsClient, out_dir: Path, by_category: bool, log: Callable[[str], None] = print) -> Result:
-    out_dir.mkdir(parents=True, exist_ok=True)
-    result = Result()
-    taken: set[Path] = set()
+# ------------------------------------------------------------------ Abgleich (Diff)
+#
+# Statt bei jedem Import alles neu zu laden, wird zuerst nur die Liederliste abgefragt und mit
+# churchtools_index.json verglichen. Jede heruntergeladene .sng-Datei bekommt dort einen
+# „Fingerabdruck“ der ChurchTools-Datei (Datei-ID, Speichername, Größe, Änderungsdatum).
+# Geändert hat sich ein Lied, wenn sich der Fingerabdruck oder der Name unterscheidet.
 
-    songs = list(client.iter_songs())
-    log(f"{len(songs)} Lieder gefunden.\n")
+_FP_KEYS = ("id", "filename", "size", "fileSize", "modifiedDate", "updatedAt")
 
-    for i, song in enumerate(songs, 1):
+
+def fingerprint(arr: dict, f: dict) -> str:
+    """Stabiler Fingerabdruck einer .sng-Datei in ChurchTools."""
+    fp = {k: f.get(k) for k in _FP_KEYS if f.get(k) not in (None, "")}
+    meta = f.get("meta") or {}
+    if isinstance(meta, dict) and meta.get("modifiedDate"):
+        fp["meta"] = meta["modifiedDate"]
+    if not fp.get("id") and not fp.get("filename"):
+        fp["url"] = f.get("fileUrl") or ""  # Notlösung, falls die API nichts anderes liefert
+    fp["name"] = f.get("name") or ""
+    return json.dumps(fp, sort_keys=True, ensure_ascii=False)
+
+
+def _match_key(song_id, arr: dict, f: dict) -> tuple:
+    return (str(song_id), str(arr.get("id") or arr.get("name") or ""), (f.get("name") or "").lower())
+
+
+def _legacy_key(song_id, arr_name: str) -> tuple:
+    return (str(song_id), arr_name or "")
+
+
+@dataclass
+class PlanItem:
+    """Eine .sng-Datei aus ChurchTools und was mit ihr passieren soll."""
+    status: str          # new | changed | unchanged | unknown (älterer Import ohne Fingerabdruck)
+    rel: str             # Zielpfad relativ zum Liederordner
+    title: str
+    category: str
+    arrangement: str
+    file_url: str
+    entry: dict          # künftiger Indexeintrag
+    reason: str = ""
+
+    def to_json(self) -> dict:
+        return {"status": self.status, "rel": self.rel, "title": self.title, "category": self.category,
+                "arrangement": self.arrangement if self.entry.get("multiple") else "", "reason": self.reason,
+                "songId": self.entry.get("id")}
+
+
+@dataclass
+class SyncPlan:
+    items: list[PlanItem] = field(default_factory=list)
+    missing: list[dict] = field(default_factory=list)      # Lieder ohne .sng in ChurchTools
+    removed: list[dict] = field(default_factory=list)      # lokal vorhanden, in ChurchTools nicht mehr
+    total_songs: int = 0
+
+    def counts(self) -> dict:
+        c = {"new": 0, "changed": 0, "unchanged": 0, "unknown": 0}
+        for it in self.items:
+            c[it.status] += 1
+        return {**c, "missing": len(self.missing), "removed": len(self.removed), "songs": self.total_songs}
+
+    def to_json(self) -> dict:
+        return {"counts": self.counts(), "items": [i.to_json() for i in self.items],
+                "missing": self.missing, "removed": self.removed}
+
+
+def plan_sync(songs: list[dict], out_dir: Path, by_category: bool, base_url: str = "") -> SyncPlan:
+    """Vergleicht die ChurchTools-Liederliste mit dem lokalen Stand, ohne etwas herunterzuladen."""
+    index = load_index(out_dir)
+    existing = {rel: e for rel, e in index.items() if (out_dir / rel).exists()}
+    by_key: dict[tuple, str] = {}
+    by_legacy: dict[tuple, list[str]] = {}
+    for rel, e in existing.items():
+        if e.get("key"):
+            by_key[tuple(e["key"])] = rel
+        by_legacy.setdefault(_legacy_key(e.get("id"), e.get("arrangement", "")), []).append(rel)
+
+    plan = SyncPlan(total_songs=len(songs))
+    taken: set[Path] = {out_dir / rel for rel in existing}
+    used: set[str] = set()
+
+    for song in songs:
         title = song.get("name") or f"Lied {song.get('id')}"
         category = (song.get("category") or {}).get("name") or "Ohne Kategorie"
-        target_dir = out_dir / safe_filename(category) if by_category else out_dir
-        target_dir.mkdir(parents=True, exist_ok=True)
-
         sng_files = [
             (arr, f)
             for arr in song.get("arrangements") or []
             for f in arr.get("files") or []
             if (f.get("name") or "").lower().endswith(".sng")
         ]
-
         if not sng_files:
-            result.missing.append(
-                {
-                    "id": song.get("id"),
-                    "titel": title,
-                    "kategorie": category,
-                    "autor": song.get("author") or "",
-                    "arrangements": ", ".join(a.get("name") or "" for a in song.get("arrangements") or []),
-                    "link": f"{client.base_url}/?q=churchservice#SongView/filterSongId:{song.get('id')}",
-                }
-            )
-            log(f"[{i}/{len(songs)}] HINWEIS: keine .sng – {title}")
+            plan.missing.append({
+                "id": song.get("id"),
+                "titel": title,
+                "kategorie": category,
+                "autor": song.get("author") or "",
+                "arrangements": ", ".join(a.get("name") or "" for a in song.get("arrangements") or []),
+                "link": f"{base_url}/?q=churchservice#SongView/filterSongId:{song.get('id')}",
+            })
             continue
 
         multiple = len(sng_files) > 1
         for arr, f in sng_files:
-            stem = safe_filename(title)
-            if multiple:
-                stem = f"{stem} - {safe_filename(arr.get('name') or f.get('name')[:-4])}"
-            target = unique_path(target_dir / f"{stem}.sng", taken)
-            try:
-                client.download(f["fileUrl"], target)
-                result.downloaded.append(str(target.relative_to(out_dir)))
-                arr_name = arr.get("name") or ""
-                result.index[target.relative_to(out_dir).as_posix()] = {
-                    "id": song.get("id"),
-                    "name": title,
-                    "arrangement": arr_name,
-                    "default": bool(arr["isDefault"]) if "isDefault" in arr else arr_name.lower().startswith("standard"),
-                    "multiple": multiple,
-                    "category": category,
-                }
-                log(f"[{i}/{len(songs)}] OK   {target.relative_to(out_dir)}")
-            except (ChurchToolsError, requests.RequestException, KeyError) as exc:
-                result.failed.append((title, str(exc)))
-                log(f"[{i}/{len(songs)}] FEHLER {title}: {exc}")
-            time.sleep(0.05)  # Server schonen
+            arr_name = arr.get("name") or ""
+            key = _match_key(song.get("id"), arr, f)
+            fp = fingerprint(arr, f)
+            entry = {
+                "id": song.get("id"),
+                "name": title,
+                "arrangement": arr_name,
+                "default": bool(arr["isDefault"]) if "isDefault" in arr else arr_name.lower().startswith("standard"),
+                "multiple": multiple,
+                "category": category,
+                "key": list(key),
+                "fingerprint": fp,
+            }
+            rel = by_key.get(key)
+            if rel is None:  # älterer Index ohne Schlüssel: über Lied-ID + Arrangement zuordnen
+                rel = next((r for r in by_legacy.get(_legacy_key(song.get("id"), arr_name), []) if r not in used), None)
+            if rel is not None and rel not in used:
+                used.add(rel)
+                old = existing[rel]
+                if not old.get("fingerprint"):
+                    status, reason = "unknown", "älterer Import – Stand unbekannt"
+                elif old["fingerprint"] != fp:
+                    status, reason = "changed", "Datei in ChurchTools geändert"
+                elif old.get("name") != title or bool(old.get("multiple")) != multiple:
+                    status, reason = "changed", "Name/Arrangement geändert"
+                else:
+                    status, reason = "unchanged", ""
+            else:
+                target_dir = out_dir / safe_filename(category) if by_category else out_dir
+                stem = safe_filename(title)
+                if multiple:
+                    stem = f"{stem} - {safe_filename(arr_name or (f.get('name') or '')[:-4])}"
+                target = unique_path(target_dir / f"{stem}.sng", taken)
+                rel = target.relative_to(out_dir).as_posix()
+                status, reason = "new", ""
+            plan.items.append(PlanItem(status, rel, title, category, arr_name, f.get("fileUrl") or "", entry, reason))
 
+    for rel, e in sorted(existing.items()):
+        if rel not in used:
+            plan.removed.append({"rel": rel, "title": e.get("name") or Path(rel).stem,
+                                 "arrangement": e.get("arrangement", "") if e.get("multiple") else ""})
+    return plan
+
+
+def sync(
+    client: ChurchToolsClient,
+    out_dir: Path,
+    plan: SyncPlan,
+    only: set[str] | None = None,
+    force: bool = False,
+    delete: set[str] | None = None,
+    log: Callable[[str], None] = print,
+) -> Result:
+    """Lädt neue/geänderte Dateien (oder nur `only`, oder mit force alle) und pflegt den Index."""
+    out_dir.mkdir(parents=True, exist_ok=True)
+    result = Result(missing=plan.missing)
+    if only is not None:
+        todo = [it for it in plan.items if it.rel in only]
+    elif force:
+        todo = list(plan.items)
+    else:
+        todo = [it for it in plan.items if it.status in ("new", "changed")]
+    todo_rels = {it.rel for it in todo}
+
+    # Unveränderte (bzw. ältere ohne Fingerabdruck) behalten ihre Datei, bekommen aber den aktuellen Indexeintrag.
+    for it in plan.items:
+        if it.rel not in todo_rels and it.status in ("unchanged", "unknown"):
+            result.index[it.rel] = it.entry
+            result.skipped += 1
+
+    log(f"{len(todo)} von {len(plan.items)} Dateien werden heruntergeladen, {result.skipped} sind aktuell.\n")
+    for i, it in enumerate(todo, 1):
+        target = out_dir / it.rel
+        target.parent.mkdir(parents=True, exist_ok=True)
+        label = {"new": "NEU ", "changed": "AKT ", "unknown": "AKT ", "unchanged": "AKT "}[it.status]
+        try:
+            if is_manual_file(target):
+                raise ChurchToolsError("Zieldatei ist ein von Hand erfasstes Lied – wird nicht überschrieben")
+            client.download(it.file_url, target)
+            result.downloaded.append(it.rel)
+            result.index[it.rel] = it.entry
+            log(f"[{i}/{len(todo)}] {label} {it.rel}")
+        except (ChurchToolsError, requests.RequestException, KeyError) as exc:
+            result.failed.append((it.title, str(exc)))
+            log(f"[{i}/{len(todo)}] FEHLER {it.title}: {exc}")
+        time.sleep(0.05)  # Server schonen
+
+    removable = {r["rel"] for r in plan.removed}
+    for rel in sorted((delete or set()) & removable):
+        path = out_dir / rel
+        if path.exists() and not is_manual_file(path):
+            path.unlink()
+            result.deleted.append(rel)
+            log(f"GELÖSCHT {rel}")
     return result
+
+
+def run(client: ChurchToolsClient, out_dir: Path, by_category: bool, log: Callable[[str], None] = print,
+        force: bool = False) -> Result:
+    """Abgleich + Download in einem Schritt (CLI): nur neue und geänderte Lieder, mit force alle."""
+    out_dir.mkdir(parents=True, exist_ok=True)
+    songs = list(client.iter_songs())
+    log(f"{len(songs)} Lieder in ChurchTools gefunden.")
+    plan = plan_sync(songs, out_dir, by_category, client.base_url)
+    c = plan.counts()
+    log(f"Abgleich: {c['new']} neu, {c['changed']} geändert, {c['unchanged'] + c['unknown']} unverändert, "
+        f"{c['missing']} ohne .sng, {c['removed']} nicht mehr in ChurchTools.")
+    return sync(client, out_dir, plan, force=force, log=log)
 
 
 def load_index(out_dir: Path) -> dict[str, dict]:
@@ -275,6 +463,7 @@ def main() -> int:
     parser.add_argument("--token", default=os.environ.get("CT_TOKEN"), help="Login-Token (statt Passwort)")
     parser.add_argument("--out", default="songs", type=Path, help="Zielordner (Standard: ./songs)")
     parser.add_argument("--by-category", action="store_true", help="Unterordner pro Liedkategorie anlegen")
+    parser.add_argument("--all", action="store_true", help="Alle Lieder neu laden statt nur neue/geänderte")
     args = parser.parse_args()
 
     client = ChurchToolsClient(args.url)
@@ -287,7 +476,7 @@ def main() -> int:
             name = client.login_with_password(user, password)
         print(f"Angemeldet als {name}")
 
-        result = run(client, args.out, args.by_category)
+        result = run(client, args.out, args.by_category, force=args.all)
     except (ChurchToolsError, requests.RequestException) as exc:
         print(f"Abbruch: {exc}", file=sys.stderr)
         return 1
@@ -295,7 +484,7 @@ def main() -> int:
     report = write_report(args.out, result)
     write_index(args.out, result)
     print("\n=== Zusammenfassung ===")
-    print(f"Heruntergeladen:  {len(result.downloaded)} .sng-Dateien")
+    print(f"Heruntergeladen:  {len(result.downloaded)} .sng-Dateien ({result.skipped} waren aktuell)")
     print(f"Ohne .sng:        {len(result.missing)} Lieder  -> {report}")
     for m in result.missing:
         print(f"  - {m['titel']}")

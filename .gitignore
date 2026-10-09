@@ -1,0 +1,6 @@
+app_settings.json
+backup/
+__pycache__/
+build/
+dist/
+version.py
