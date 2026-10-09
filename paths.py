@@ -2,8 +2,8 @@
 
   * RES_DIR:  mitgelieferte, nur lesbare Dateien (web/, examples/, Standard-Formatierung)
   * DATA_DIR: Lieder, Einstellungen, Sicherungen. Beim Start aus dem Quellcode der Projektordner,
-              im gepackten Programm ~/Liedbruecke (änderbar über LIEDBRUECKE_DATA;
-              ein vorhandenes ~/Liederverwaltung vom früheren Namen wird weiter benutzt).
+              im gepackten Programm ~/SongBridge (änderbar über SONGBRIDGE_DATA;
+              ein vorhandenes ~/Liedbruecke bzw. ~/Liederverwaltung von früheren Namen wird weiter benutzt).
 """
 
 from __future__ import annotations
@@ -17,13 +17,14 @@ FROZEN = bool(getattr(sys, "frozen", False))
 _SRC_DIR = Path(__file__).resolve().parent
 RES_DIR = Path(getattr(sys, "_MEIPASS", _SRC_DIR))
 
-_env = os.environ.get("LIEDBRUECKE_DATA") or os.environ.get("LIEDERVERWALTUNG_DATA")
+_env = next((os.environ[k] for k in ("SONGBRIDGE_DATA", "LIEDBRUECKE_DATA", "LIEDERVERWALTUNG_DATA")
+             if os.environ.get(k)), "")
 if _env:
     DATA_DIR = Path(_env).expanduser()
 elif FROZEN:
-    # Früherer Programmname „Liederverwaltung“: vorhandenen Datenordner weiter benutzen.
-    _old = Path.home() / "Liederverwaltung"
-    DATA_DIR = _old if _old.is_dir() and not (Path.home() / "Liedbruecke").exists() else Path.home() / "Liedbruecke"
+    # Frühere Programmnamen „Liedbruecke“/„Liederverwaltung“: vorhandenen Datenordner weiter benutzen.
+    _dirs = [Path.home() / n for n in ("SongBridge", "Liedbruecke", "Liederverwaltung")]
+    DATA_DIR = next((d for d in _dirs if d.is_dir()), _dirs[0])
 else:
     DATA_DIR = _SRC_DIR
 

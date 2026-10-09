@@ -1,14 +1,14 @@
-# Liedbrücke
+# SongBridge
 
 **Die Brücke zwischen ChurchTools und ProPresenter 7.**
-Liedbrücke holt die Lieder (SongBeamer-Dateien) aus ChurchTools, wandelt sie in ProPresenter-Präsentationen um
+SongBridge holt die Lieder (SongBeamer-Dateien) aus ChurchTools, wandelt sie in ProPresenter-Präsentationen um
 und macht aus dem Ablaufplan eines Gottesdienstes mit einem Klick eine fertige ProPresenter-Playlist –
 inklusive Predigtfolien, Vaterunser und Stille-Bild.
 
-Liedbrücke läuft lokal auf dem Rechner, auf dem ProPresenter läuft (macOS oder Windows), und wird im Browser bedient.
+SongBridge läuft lokal auf dem Rechner, auf dem ProPresenter läuft (macOS oder Windows), und wird im Browser bedient.
 Es ist ein einzelnes Programm, eine Python-Installation ist nicht nötig.
 
-> Liedbrücke ist ein privates Gemeindeprojekt und steht in keiner Verbindung zu ChurchTools (ECGroup) oder
+> SongBridge ist ein privates Gemeindeprojekt und steht in keiner Verbindung zu ChurchTools (ECGroup) oder
 > Renewed Vision (ProPresenter).
 
 ---
@@ -30,13 +30,13 @@ Es ist ein einzelnes Programm, eine Python-Installation ist nicht nötig.
 ## Installation
 
 1. Unter [**Releases**](../../releases/latest) die passende ZIP laden:
-   - `Liedbruecke-Windows.zip`
-   - `Liedbruecke-macOS-AppleSilicon.zip` (Macs mit M1/M2/M3/M4)
-   - `Liedbruecke-macOS-Intel.zip` (ältere Macs)
+   - `SongBridge-Windows.zip`
+   - `SongBridge-macOS-AppleSilicon.zip` (Macs mit M1/M2/M3/M4)
+   - `SongBridge-macOS-Intel.zip` (ältere Macs)
 2. Entpacken und die Programmdatei in einen Ordner legen, in den du schreiben darfst (Desktop, Programme …) –
    sonst kann sie sich nicht selbst aktualisieren.
 3. Starten:
-   - **Windows:** `Liedbruecke.exe` doppelklicken. Bei „Der Computer wurde durch Windows geschützt“:
+   - **Windows:** `SongBridge.exe` doppelklicken. Bei „Der Computer wurde durch Windows geschützt“:
      „Weitere Informationen“ → „Trotzdem ausführen“.
    - **macOS:** beim ersten Mal **Rechtsklick → Öffnen** (das Programm ist nicht bei Apple signiert).
 4. Der Browser öffnet sich mit der Oberfläche (`http://127.0.0.1:5005`). Das Terminal-Fenster offen lassen –
@@ -80,8 +80,8 @@ nur unter Windows – ein installiertes Microsoft PowerPoint. PDF, Bilder, Video
 
 ### Daten
 
-Lieder und Einstellungen liegen im Ordner `Liedbruecke` in deinem Benutzerordner (bzw. `Liederverwaltung` aus
-früheren Versionen). Zum Umziehen einfach den Ordner mitkopieren. Anderer Ort: Umgebungsvariable `LIEDBRUECKE_DATA`.
+Lieder und Einstellungen liegen im Ordner `SongBridge` in deinem Benutzerordner (bzw. `Liedbruecke`/`Liederverwaltung`
+aus früheren Versionen). Zum Umziehen einfach den Ordner mitkopieren. Anderer Ort: Umgebungsvariable `SONGBRIDGE_DATA`.
 
 ### Updates
 

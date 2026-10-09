@@ -911,11 +911,11 @@ def main() -> None:
                 break
             time.sleep(0.5)
     if _port_in_use(args.port):  # läuft schon (z. B. zweiter Doppelklick) -> nur Browser öffnen
-        print(f"Liedbrücke läuft bereits auf {url}")
+        print(f"SongBridge läuft bereits auf {url}")
         if not args.no_browser:
             webbrowser.open(url)
         return
-    print(f"Liedbrücke {updater.VERSION} läuft auf {url}  (Beenden: dieses Fenster schließen oder Strg+C)")
+    print(f"SongBridge {updater.VERSION} läuft auf {url}  (Beenden: dieses Fenster schließen oder Strg+C)")
     if updater.can_update()[0]:
         threading.Thread(target=_update_loop, args=(5 if args.after_update else 60,), daemon=True).start()
     print(f"Datenordner: {paths.DATA_DIR}")

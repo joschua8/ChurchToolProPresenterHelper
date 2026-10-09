@@ -1,5 +1,5 @@
-# PyInstaller-Konfiguration: eine einzelne Programmdatei „Liedbruecke“ (bzw. .exe).
-#   pip install pyinstaller && pyinstaller Liedbruecke.spec   ->  dist/Liedbruecke
+# PyInstaller-Konfiguration: eine einzelne Programmdatei „SongBridge“ (bzw. .exe).
+#   pip install pyinstaller && pyinstaller SongBridge.spec   ->  dist/SongBridge
 from pathlib import Path
 
 pb2 = [p.stem for p in Path("propresenterFormatter").glob("*_pb2.py")]
@@ -21,7 +21,7 @@ exe = EXE(
     a.scripts,
     a.binaries,
     a.datas,
-    name="Liedbruecke",
+    name="SongBridge",
     console=True,  # Fenster zeigt Adresse/Datenordner; Schließen beendet das Programm
     upx=False,
 )
