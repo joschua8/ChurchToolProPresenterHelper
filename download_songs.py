@@ -155,13 +155,16 @@ class ChurchToolsClient:
                           "url": f.get("frontendUrl") or ""})
         return files
 
-    def file_url(self, file_id: str) -> str:
-        """Download-Adresse einer Datei (GET /files/{id}/meta -> fileUrl)."""
+    def file_meta(self, file_id: str) -> tuple[str, str]:
+        """Download-Adresse und echter Dateiname (GET /files/{id}/meta -> fileUrl, filename).
+
+        Der „title“ am Termin ist nur ein Anzeigename und muss keine Dateiendung haben.
+        """
         data = self._get_data(f"files/{file_id}/meta", "Datei").get("data") or {}
         url = data.get("fileUrl") or ""
         if not url:
             raise ChurchToolsError(f"Datei {file_id}: keine Download-Adresse")
-        return url
+        return url, (data.get("filename") or "").strip()
 
     def download(self, file_url: str, target: Path) -> None:
         if not file_url.startswith("http"):

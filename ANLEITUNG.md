@@ -38,10 +38,15 @@ Ein anderer Ort lässt sich über die Umgebungsvariable `LIEDERVERWALTUNG_DATA` 
 Die ProPresenter-Bibliothek, den Ordner mit den Stille-Bildern und die ChurchTools-Anmeldung
 stellst du in der Oberfläche unter **Einstellungen** ein.
 
+## Lieder ohne ChurchTools hinzufügen
+
+Unter **Lieder → Hochladen** Dateien aus CCLI SongSelect (`.usr` oder `.txt`) oder SongBeamer-Dateien
+(`.sng`) hineinziehen. Gibt es ein Lied mit gleichem Titel schon, wird es nicht überschrieben.
+
 ## PowerPoint-Dateien im Ablaufplan
 
 Präsentationen (.pptx/.ppt), die in ChurchTools am Termin hängen, werden für die Playlist in Bilder
 umgewandelt. Dafür braucht es **LibreOffice** (kostenlos, libreoffice.org) oder – nur unter
 Windows – ein installiertes **Microsoft PowerPoint**. PDF, Bilder, Videos und Audio gehen ohne.
-Andere Dateien (z. B. .docx) kommen nicht in die Playlist; ihre Namen stehen in einer orangen
+Andere Dateien (z. B. .docx) werden gar nicht erst heruntergeladen; ihre Namen stehen in einer orangen
 Kopfzeile ganz oben, damit nichts übersehen wird.

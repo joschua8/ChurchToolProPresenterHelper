@@ -3,7 +3,7 @@
 
 Start:  .venv/bin/python app.py   ->  http://127.0.0.1:5005
 
-  * Lieder: alle .sng-Lieder im Ordner songs/ durchsuchen, ohne .sng per Freitext erfassen
+  * Lieder: alle .sng-Lieder im Ordner songs/ durchsuchen, SongSelect-Dateien (.usr/.txt) hochladen
   * ChurchTools: Ablaufpläne ansehen und als ProPresenter-Playlist (.proPlaylist) exportieren;
     Lieder-Import mit Abgleich (nur neue/geänderte Lieder werden geladen, download_songs.py)
   * ProPresenter: Abgleich Liederdatenbank <-> Lieder-Bibliothek (pp_sync.py), Export als .pro
@@ -34,14 +34,14 @@ import playlist
 import paths
 import pp_sync
 import pro_export
+import songselect
 from sng import (
     Song,
     build_sng,
     is_manual_file,
     norm_title,
-    parse_freetext,
+    parse_sng,
     read_sng,
-    song_to_freetext,
 )
 
 BASE_DIR = paths.RES_DIR
@@ -131,41 +131,7 @@ def get_song(song_id: str):
     if not path.exists():
         return error("Lied nicht gefunden", 404)
     song = read_sng(path)
-    data = song_json(path, song)
-    if song.manual:
-        data["freetext"] = song_to_freetext(song)
-    return jsonify(data)
-
-
-@app.post("/api/preview")
-def preview():
-    sections, order, warnings = parse_freetext((request.json or {}).get("text", ""))
-    by_label = {s.label: s for s in sections}
-    return jsonify(
-        {
-            "sections": [{"label": l, "lines": by_label[l].lines} for l in order],
-            "order": order,
-            "warnings": warnings,
-        }
-    )
-
-
-def _song_from_request(data: dict) -> tuple[Song, list[str]] | tuple[None, str]:
-    title = " ".join((data.get("title") or "").split())
-    if not title:
-        return None, "Bitte einen Titel angeben."
-    sections, order, warnings = parse_freetext(data.get("text") or "")
-    if not sections:
-        return None, "Bitte den Liedtext eingeben."
-    song = Song(
-        title=title,
-        author=(data.get("author") or "").strip(),
-        ccli=(data.get("ccli") or "").strip(),
-        copyright=(data.get("copyright") or "").strip(),
-        sections=sections,
-        order=order,
-    )
-    return song, warnings
+    return jsonify(song_json(path, song))
 
 
 def _write_song(song: Song, target: Path) -> None:
@@ -175,35 +141,36 @@ def _write_song(song: Song, target: Path) -> None:
     tmp.replace(target)
 
 
-@app.post("/api/songs")
-def create_song():
-    song, result = _song_from_request(request.json or {})
-    if song is None:
-        return error(result)
-    target = SONGS_DIR / f"{dl.safe_filename(song.title)}.sng"
-    if target.exists():
-        return error(f"Es gibt bereits eine Datei „{target.name}“. Bitte den Titel anpassen.", 409)
-    _write_song(song, target)
-    return jsonify({"id": target.relative_to(SONGS_DIR).as_posix(), "warnings": result}), 201
+@app.post("/api/songs/upload")
+def upload_songs():
+    """SongSelect-Dateien (.usr/.txt) oder .sng hochladen -> songs/<Titel>.sng.
 
-
-@app.put("/api/songs/<path:song_id>")
-def update_song(song_id: str):
-    path = song_path(song_id)
-    if not path.exists():
-        return error("Lied nicht gefunden", 404)
-    if not is_manual_file(path):
-        return error("Nur von Hand erfasste Lieder können hier bearbeitet werden.", 403)
-    song, result = _song_from_request(request.json or {})
-    if song is None:
-        return error(result)
-    target = path.parent / f"{dl.safe_filename(song.title)}.sng"
-    if target != path and target.exists():
-        return error(f"Es gibt bereits eine Datei „{target.name}“. Bitte den Titel anpassen.", 409)
-    _write_song(song, target)
-    if target != path:
-        path.unlink()
-    return jsonify({"id": target.relative_to(SONGS_DIR).as_posix(), "warnings": result})
+    Ergebnis je Datei: {file, ok, id?, title?, error?, warnings}. Vorhandene Lieder werden nicht überschrieben.
+    """
+    results = []
+    for f in request.files.getlist("files"):
+        name = Path(f.filename or "").name
+        res = {"file": name, "ok": False, "warnings": []}
+        results.append(res)
+        try:
+            song, raw, warnings = songselect.parse_upload(name, f.read())
+        except (songselect.SongSelectError, ValueError) as exc:
+            res["error"] = str(exc)
+            continue
+        title = song.title if song else parse_sng(raw).title
+        target = SONGS_DIR / f"{dl.safe_filename(title)}.sng"
+        if target.exists():
+            res["error"] = f"Es gibt bereits ein Lied „{target.stem}“."
+            continue
+        if song:
+            _write_song(song, target)
+        else:
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_text(raw, encoding="utf-8")
+        res.update(ok=True, id=target.relative_to(SONGS_DIR).as_posix(), title=title, warnings=warnings)
+    if not results:
+        return error("Keine Datei ausgewählt.")
+    return jsonify({"results": results})
 
 
 @app.delete("/api/songs/<path:song_id>")
@@ -212,7 +179,7 @@ def delete_song(song_id: str):
     if not path.exists():
         return error("Lied nicht gefunden", 404)
     if not is_manual_file(path):
-        return error("Nur von Hand erfasste Lieder können gelöscht werden.", 403)
+        return error("Nur hochgeladene Lieder können gelöscht werden.", 403)
     path.unlink()
     return jsonify({"ok": True})
 
@@ -534,6 +501,12 @@ def ct_plan(event_id: int):
     except (dl.ChurchToolsError, requests.RequestException) as exc:
         files = []
         notes.append(f"Dateien am Termin nicht abrufbar: {exc}")
+    for f in files:
+        # Der Titel am Termin ist nur ein Anzeigename – Dateityp über den echten Dateinamen bestimmen.
+        try:
+            f["name"] = client.file_meta(f["id"])[1] or f["name"]
+        except (dl.ChurchToolsError, requests.RequestException):
+            pass
     settings, root, docs = _library()
     matcher = playlist.Matcher(docs, settings.library_order)
     # Name/Beginn kommen aus der Terminliste der Oberfläche (spart eine zweite Abfrage).
@@ -585,7 +558,7 @@ def put_playlist_settings():
 def _media_files(row: dict, settings: playlist.PlaylistSettings, tmp: Path) -> list[Path]:
     """Dateien einer Medien-Zeile: Stille-Bilder aus dem Ordner bzw. Datei vom Termin (aus ChurchTools geladen).
 
-    PowerPoint/Keynote wird über Keynote in eine Folge von JPEGs umgewandelt.
+    PowerPoint/PDF wird in eine Folge von JPEGs umgewandelt (playlist.slides_to_images).
     """
     media = row.get("media") or {}
     if media.get("source") == "silence":
@@ -595,17 +568,22 @@ def _media_files(row: dict, settings: playlist.PlaylistSettings, tmp: Path) -> l
         return files
     if media.get("source") != "ct":
         raise RuntimeError("unbekannte Quelle")
-    name = Path(str(media.get("name") or "Datei")).name
-    kind = playlist.media_kind(name)
-    if not kind:
-        raise RuntimeError("Dateityp wird nicht unterstützt")
     client = ct.get()
     if client is None:
         raise RuntimeError("nicht bei ChurchTools angemeldet")
+    try:
+        url, filename = client.file_meta(str(media.get("fileId")))
+    except (dl.ChurchToolsError, requests.RequestException) as exc:
+        raise RuntimeError(f"Datei nicht abrufbar ({exc})") from exc
+    # Typ erst am echten Dateinamen prüfen, dann laden – .docx & Co. werden gar nicht heruntergeladen.
+    name = Path(filename or str(media.get("name") or "Datei")).name
+    kind = playlist.media_kind(name)
+    if not kind:
+        raise RuntimeError(f"{Path(name).suffix or 'Dateityp'} wird nicht übernommen")
     target = tmp / str(media.get("fileId")) / name
     target.parent.mkdir(parents=True, exist_ok=True)
     try:
-        client.download(client.file_url(str(media.get("fileId"))), target)
+        client.download(url, target)
     except (dl.ChurchToolsError, requests.RequestException) as exc:
         raise RuntimeError(f"Download fehlgeschlagen ({exc})") from exc
     if kind == "slides":
@@ -632,7 +610,7 @@ def make_playlist():
         if not entries:
             return error("Keine Einträge ausgewählt.")
         bundle: dict = {}
-        doc = playlist.build_playlist(name, entries, root, bundle, settings.embed_presentations)
+        doc = playlist.build_playlist(name, entries, root, bundle)
         body = playlist.to_proplaylist(doc, bundle)
     resp = send_file(io.BytesIO(body), mimetype="application/octet-stream", as_attachment=True,
                      download_name=f"{dl.safe_filename(name)}.proPlaylist")

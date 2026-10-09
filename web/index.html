@@ -107,9 +107,13 @@ label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 4px
 mark { background: var(--warn-soft); color: inherit; }
 
 /* Editor */
-.editor { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-.editor .panel { padding: 20px; }
-.editor textarea { min-height: 380px; resize: vertical; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 14px; }
+.uploader { max-width: 760px; }
+.uploader .panel { padding: 20px; }
+.dropzone { border: 2px dashed var(--line); border-radius: 10px; padding: 36px 16px; text-align: center; cursor: pointer; color: var(--muted); }
+.dropzone.over, .dropzone:hover { border-color: var(--accent); color: var(--text); }
+.dropzone b { color: var(--text); }
+.up-results { list-style: none; margin: 14px 0 0; padding: 0; }
+.up-results li { padding: 8px 0; border-top: 1px solid var(--line); font-size: 14px; }
 .help { font-size: 13px; color: var(--muted); background: var(--code); border-radius: 6px; padding: 10px 12px; margin-bottom: 14px; }
 .help code { font-size: 12px; }
 .help summary { cursor: pointer; }
@@ -282,7 +286,7 @@ details.token summary { cursor: pointer; font-size: 13px; color: var(--muted); m
   .subbar { padding: 10px 16px 0; }
   main { padding: 12px 16px; }
   .settings { grid-template-columns: 1fr; } .rows .diff { grid-template-columns: 1fr; }
-  .library, .editor, .import, .grid2, .exporter, .planner { grid-template-columns: 1fr; height: auto; }
+  .library, .uploader, .import, .grid2, .exporter, .planner { grid-template-columns: 1fr; height: auto; }
   .planner .list-pane { height: 60vh; } .plan-pane { height: 75vh; }
   .exporter .list-pane { height: 60vh; } .preview-pane { height: 75vh; }
   .list-pane { max-height: 50vh; }
@@ -313,7 +317,7 @@ details.token summary { cursor: pointer; font-size: 13px; color: var(--muted); m
           <div class="filters" id="filters">
             <button class="chip active" data-f="all">Alle</button>
             <button class="chip" data-f="ct">ChurchTools</button>
-            <button class="chip" data-f="manual">Manuell</button>
+            <button class="chip" data-f="manual">Hochgeladen</button>
             <button class="chip" data-f="missing">Ohne .sng</button>
           </div>
         </div>
@@ -324,44 +328,19 @@ details.token summary { cursor: pointer; font-size: 13px; color: var(--muted); m
     </div>
   </section>
 
-  <!-- ======================= Erfassen ======================= -->
-  <section class="tab" id="tab-edit" hidden>
-    <div class="editor">
+  <!-- ======================= Hochladen ======================= -->
+  <section class="tab" id="tab-upload" hidden>
+    <div class="uploader">
       <div class="panel">
-        <h3 id="edit-title">Neues Lied per Freitext erfassen</h3>
-        <div id="edit-msg"></div>
-        <div class="field"><label for="f-title">Titel *</label><input type="text" id="f-title"></div>
-        <div class="grid2">
-          <div class="field"><label for="f-author">Autor</label><input type="text" id="f-author"></div>
-          <div class="field"><label for="f-ccli">CCLI-Nr.</label><input type="text" id="f-ccli" inputmode="numeric"></div>
-        </div>
-        <div class="field"><label for="f-copy">Copyright</label><input type="text" id="f-copy"></div>
-        <details class="help">
-          <summary>So wird der Text aufgeteilt</summary>
-          <ul style="margin:8px 0 0;padding-left:18px">
-            <li>Eine <b>Leerzeile</b> trennt Abschnitte (Folien).</li>
-            <li>Erste Zeile wie <code>Strophe 1</code>, <code>[Refrain]</code>, <code>Chorus:</code>, <code>Bridge</code>, <code>Intro</code>, <code>Schluss</code> → Abschnittsname.</li>
-            <li><code>1. Text …</code> am Anfang → Strophe 1.</li>
-            <li><code>Instrumental</code> / <code>Intro</code> allein in einem Block → leere Folie an dieser Stelle.</li>
-            <li>Nur <code>Refrain</code> ohne Text → Refrain wird an dieser Stelle wiederholt.</li>
-            <li>Blöcke ohne Namen werden fortlaufende Strophen; ein wortgleich wiederholter Block wird als Wiederholung erkannt.</li>
-          </ul>
-        </details>
-        <div class="field"><label for="f-text">Liedtext *</label>
-          <textarea id="f-text" spellcheck="false" placeholder="Strophe 1&#10;Erste Zeile&#10;Zweite Zeile&#10;&#10;Refrain&#10;Refrainzeile …&#10;&#10;Strophe 2&#10;…&#10;&#10;Refrain"></textarea>
-        </div>
-        <div class="btn-row">
-          <button class="btn primary" id="save">Speichern</button>
-          <button class="btn" id="cancel">Verwerfen</button>
-          <span class="muted" id="save-info" style="font-size:13px"></span>
-        </div>
-      </div>
-      <div class="panel">
-        <h3>Vorschau</h3>
-        <div id="pv-warn"></div>
-        <label>Reihenfolge (VerseOrder)</label>
-        <div class="order" id="pv-order"><span class="muted">–</span></div>
-        <div class="sections" id="pv-sections"></div>
+        <h3>Lieder hochladen</h3>
+        <p class="muted" style="font-size:13px;margin-top:0">Alternative zum Import aus ChurchTools: Dateien aus
+          <b>CCLI SongSelect</b> (<code>.usr</code> oder <code>.txt</code>) oder SongBeamer-Dateien (<code>.sng</code>).
+          Sie landen in der Liederdatenbank wie importierte Lieder.</p>
+        <label class="dropzone" id="up-drop">
+          <input type="file" id="up-files" multiple accept=".usr,.txt,.sng" hidden>
+          <b>Dateien hierher ziehen</b><br>oder klicken zum Auswählen
+        </label>
+        <ul class="up-results" id="up-results"></ul>
       </div>
     </div>
   </section>
@@ -422,7 +401,7 @@ details.token summary { cursor: pointer; font-size: 13px; color: var(--muted); m
           <div class="filters" id="x-filters">
             <button class="chip active" data-f="all">Alle</button>
             <button class="chip" data-f="ct">ChurchTools</button>
-            <button class="chip" data-f="manual">Manuell</button>
+            <button class="chip" data-f="manual">Hochgeladen</button>
             <button class="chip" data-f="sel">Ausgewählt</button>
           </div>
           <div class="btn-row" style="margin-top:10px">
@@ -599,7 +578,7 @@ async function api(path, opts = {}) {
 /* ---------------- Navigation ---------------- */
 // Hauptbereiche mit Unterreitern; jede Ansicht ist eine <section id="tab-…">.
 const AREAS = {
-  lieder: {views: [["songs", "Bibliothek"], ["edit", "Neues Lied"]]},
+  lieder: {views: [["songs", "Bibliothek"], ["upload", "Hochladen"]]},
   ct: {views: [["plan", "Ablaufpläne"], ["import", "Lieder-Import"]]},
   pp: {views: [["ppdiff", "Abgleich"], ["export", "Export & Formatierung"]]},
   settings: {views: [["settings", "Einstellungen"]]},
@@ -626,7 +605,6 @@ function showTab(name) {
   if (name === "settings") openSettingsTab();
 }
 function openView(name) {
-  if (name === "edit" && !editing.id && !dirty()) resetEditor();
   showTab(name);
 }
 document.querySelectorAll("nav.main button").forEach(b => b.onclick = () => {
@@ -677,7 +655,7 @@ function renderList() {
   $("#list").innerHTML = items.map(s => {
     let badge = "";
     if (s.kind === "missing") badge = s.covered ? '<span class="badge covered">erfasst</span>' : '<span class="badge missing">ohne .sng</span>';
-    else if (s.manual) badge = '<span class="badge manual">manuell</span>';
+    else if (s.manual) badge = '<span class="badge manual">hochgeladen</span>';
     const hit = snippet(s, q);
     return `<li data-id="${esc(s.id)}" class="${s.id === selected ? "sel" : ""}">
       <div class="t"><span>${esc(s.title)}</span>${badge}</div>
@@ -687,7 +665,7 @@ function renderList() {
   const manual = songs.filter(s => s.manual).length;
   const open = missing.filter(m => !m.covered).length;
   const filtered = q || filter !== "all";
-  $("#count").textContent = `${songs.length} Lieder (${manual} manuell) · ${open} noch ohne Text` +
+  $("#count").textContent = `${songs.length} Lieder (${manual} hochgeladen) · ${open} noch ohne Text` +
     (filtered ? ` · ${items.length} angezeigt` : "");
   renderExportList();
 }
@@ -733,19 +711,17 @@ function select(id, scroll = true) {
         ${m.category ? `<div>Kategorie: ${esc(m.category)}</div>` : ""}
       </div>
       <div class="notice ${m.covered ? "ok" : "warn"}">${m.covered
-        ? "In ChurchTools ohne .sng-Datei – der Text wurde aber bereits von Hand erfasst."
-        : "Für dieses Lied gibt es in ChurchTools keine .sng-Datei. Du kannst den Text hier per Freitext erfassen."}</div>
+        ? "In ChurchTools ohne .sng-Datei – das Lied wurde aber bereits hochgeladen."
+        : "Für dieses Lied gibt es in ChurchTools keine .sng-Datei. Du kannst es aus SongSelect herunterladen und hier hochladen."}</div>
       <div class="btn-row">
-        ${m.covered ? "" : '<button class="btn primary" id="d-add">Text jetzt erfassen</button>'}
+        ${m.covered ? "" : '<button class="btn primary" data-goto="upload">SongSelect-Datei hochladen</button>'}
         ${m.link ? `<a class="btn" href="${esc(m.link)}" target="_blank" rel="noopener">In ChurchTools öffnen</a>` : ""}
       </div>`;
-    const add = $("#d-add");
-    if (add) add.onclick = () => { resetEditor({title: m.title, author: m.author}); showTab("edit"); $("#f-text").focus(); };
     return;
   }
   const s = songs.find(x => x.id === id);
   if (!s) { d.innerHTML = '<p class="empty">Lied links auswählen.</p>'; return; }
-  d.innerHTML = `<h2>${esc(s.title)} ${s.manual ? '<span class="badge manual">manuell erfasst</span>' : ""}</h2>
+  d.innerHTML = `<h2>${esc(s.title)} ${s.manual ? '<span class="badge manual">hochgeladen</span>' : ""}</h2>
     <div class="meta">
       ${s.author ? `<div>${esc(s.author)}</div>` : ""}
       ${s.ccli ? `<div>CCLI ${esc(s.ccli)}</div>` : ""}
@@ -756,17 +732,11 @@ function select(id, scroll = true) {
       <a class="btn" href="${exportUrl("pro", s.id)}">.pro herunterladen</a>
       <a class="btn" href="${exportUrl("json", s.id)}" target="_blank" rel="noopener">.json ansehen</a>
       <button class="btn" id="d-preview">Folienvorschau</button>
-      ${s.manual ? `<button class="btn" id="d-edit">Bearbeiten</button>
-      <button class="btn danger" id="d-del">Löschen</button>` : ""}</div>
+      ${s.manual ? '<button class="btn danger" id="d-del">Löschen</button>' : ""}</div>
     <div class="sections">${renderSections(s.sections, s.langCount)}</div>`;
   if (scroll) d.scrollTop = 0;
   $("#d-preview").onclick = () => { showTab("export"); focusPreview(s.id); };
   if (s.manual) {
-    $("#d-edit").onclick = async () => {
-      const full = await api("/api/songs/" + encodeURIComponent(s.id));
-      resetEditor({title: full.title, author: full.author, ccli: full.ccli, copyright: full.copyright, text: full.freetext}, s.id);
-      showTab("edit");
-    };
     const del = $("#d-del");
     del.onclick = async () => {
       if (!del.classList.contains("armed")) {
@@ -782,75 +752,35 @@ function select(id, scroll = true) {
   }
 }
 
-/* ---------------- Erfassen / Bearbeiten ---------------- */
-let editing = {id: null, initial: ""};
-const formFields = ["title", "author", "ccli", "copy", "text"];
-const formState = () => formFields.map(f => $("#f-" + f).value).join("\u0001");
-const dirty = () => formState() !== editing.initial;
-
-function resetEditor(values = {}, id = null) {
-  $("#f-title").value = values.title || "";
-  $("#f-author").value = values.author || "";
-  $("#f-ccli").value = values.ccli || "";
-  $("#f-copy").value = values.copyright || "";
-  $("#f-text").value = values.text || "";
-  editing = {id, initial: formState()};
-  $("#edit-title").textContent = id ? "Lied bearbeiten" : "Neues Lied per Freitext erfassen";
-  $("#edit-msg").innerHTML = "";
-  $("#save-info").textContent = "";
-  updatePreview();
-}
-
-let pvTimer;
-function updatePreview() {
-  clearTimeout(pvTimer);
-  pvTimer = setTimeout(async () => {
-    const text = $("#f-text").value;
-    if (!text.trim()) {
-      $("#pv-order").innerHTML = '<span class="muted">–</span>';
-      $("#pv-sections").innerHTML = '<p class="muted">Hier erscheint die Aufteilung in Abschnitte.</p>';
-      $("#pv-warn").innerHTML = "";
-      return;
-    }
-    const pv = await api("/api/preview", {method: "POST", body: {text}});
-    $("#pv-order").innerHTML = pv.order.map(l => `<span class="badge">${esc(l)}</span>`).join("");
-    $("#pv-warn").innerHTML = pv.warnings.map(w => `<div class="notice warn">${esc(w)}</div>`).join("");
-    const seen = new Set();
-    $("#pv-sections").innerHTML = pv.sections.map(sec => {
-      const rep = seen.has(sec.label); seen.add(sec.label);
-      return `<div class="section"><h4>${esc(sec.label)}${rep ? ' <span class="muted">(Wiederholung)</span>' : ""}</h4>
-        <p${rep ? ' class="muted"' : ""}>${esc(sec.lines.join("\n"))}</p></div>`;
-    }).join("");
-  }, 200);
-}
-$("#f-text").oninput = updatePreview;
-
-$("#save").onclick = async () => {
-  const body = {
-    title: $("#f-title").value, author: $("#f-author").value, ccli: $("#f-ccli").value,
-    copyright: $("#f-copy").value, text: $("#f-text").value,
-  };
-  $("#save").disabled = true;
+/* ---------------- Hochladen ---------------- */
+async function uploadSongs(fileList) {
+  const files = [...fileList];
+  if (!files.length) return;
+  const fd = new FormData();
+  files.forEach(f => fd.append("files", f));
+  $("#up-results").innerHTML = '<li class="muted">Wird hochgeladen …</li>';
   try {
-    const res = editing.id
-      ? await api("/api/songs/" + encodeURIComponent(editing.id), {method: "PUT", body})
-      : await api("/api/songs", {method: "POST", body});
-    editing = {id: res.id, initial: formState()};
-    $("#edit-title").textContent = "Lied bearbeiten";
-    $("#edit-msg").innerHTML = `<div class="notice ok">Gespeichert als <b>${esc(res.id)}</b>.</div>` +
-      res.warnings.map(w => `<div class="notice warn">${esc(w)}</div>`).join("");
-    await loadSongs();
-    select(res.id);
+    const res = await fetch("/api/songs/upload", {method: "POST", body: fd});
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+    $("#up-results").innerHTML = data.results.map(r => `<li>${r.ok
+      ? `<span style="color:var(--ok)">✓</span> <a href="#" data-song="${esc(r.id)}">${esc(r.title)}</a> <span class="muted">(${esc(r.file)})</span>`
+      : `<span style="color:var(--danger)">✗</span> ${esc(r.file)}: ${esc(r.error)}`}${
+      (r.warnings || []).map(w => `<div class="muted" style="font-size:12px">${esc(w)}</div>`).join("")}</li>`).join("");
+    if (data.results.some(r => r.ok)) await loadSongs();
   } catch (err) {
-    $("#edit-msg").innerHTML = `<div class="notice error">${esc(err.message)}</div>`;
-  } finally {
-    $("#save").disabled = false;
+    $("#up-results").innerHTML = `<li><div class="notice error">${esc(err.message)}</div></li>`;
   }
-};
-$("#cancel").onclick = () => {
-  const id = editing.id;
-  resetEditor();
-  if (id) { showTab("songs"); select(id); }
+  $("#up-files").value = "";
+}
+$("#up-files").onchange = e => uploadSongs(e.target.files);
+const drop = $("#up-drop");
+drop.ondragover = e => { e.preventDefault(); drop.classList.add("over"); };
+drop.ondragleave = () => drop.classList.remove("over");
+drop.ondrop = e => { e.preventDefault(); drop.classList.remove("over"); uploadSongs(e.dataTransfer.files); };
+$("#up-results").onclick = e => {
+  const a = e.target.closest("[data-song]");
+  if (a) { e.preventDefault(); showTab("songs"); select(a.dataset.song); }
 };
 
 /* ---------------- Export ---------------- */
@@ -886,7 +816,7 @@ function renderExportList() {
   const items = xVisible();
   $("#x-list").innerHTML = items.map(s => `<li data-id="${esc(s.id)}" class="${s.id === xFocus ? "sel" : ""}">
       <input type="checkbox" ${xSel.has(s.id) ? "checked" : ""} aria-label="${esc(s.title)} auswählen">
-      <div class="info"><div class="t"><span title="Exportname: ${esc(s.exportName)}.pro">${esc(s.exportName)}</span>${s.manual ? '<span class="badge manual">manuell</span>' : ""}</div>
+      <div class="info"><div class="t"><span title="Exportname: ${esc(s.exportName)}.pro">${esc(s.exportName)}</span>${s.manual ? '<span class="badge manual">hochgeladen</span>' : ""}</div>
       ${s.author ? `<div class="a">${esc(s.author)}</div>` : ""}</div></li>`).join("")
     || '<li class="muted" style="cursor:default">Keine Treffer.</li>';
   const filtered = $("#x-q").value.trim() || xFilter !== "all";
@@ -1844,7 +1774,7 @@ function renderDiff() {
   $("#d-rows").innerHTML = diffRows().map(r => {
     const selectable = r.status === "db_only" || r.status === "different";
     const sub = [
-      r.id ? `Liederdatenbank: ${r.id}${r.manual ? " (manuell)" : ""}` : "",
+      r.id ? `Liederdatenbank: ${r.id}${r.manual ? " (hochgeladen)" : ""}` : "",
       r.pp ? `ProPresenter: ${r.pp.file} (${fmt(r.pp.modified)})` : r.proName ? `wird zu ${r.proName}` : "",
       r.note,
     ].filter(Boolean).map(esc).join(" · ");
@@ -1932,7 +1862,7 @@ async function openSettingsTab() {
   renderSettingsCt();
   applyLibrary(await api("/api/playlist/library"));
   $("#s-db").innerHTML = `<span>Ordner</span><code>${esc(appSettings.songsDir)}</code>
-    <span>Lieder</span><span>${songs.length} (${songs.filter(s => s.manual).length} manuell erfasst)</span>
+    <span>Lieder</span><span>${songs.length} (${songs.filter(s => s.manual).length} hochgeladen)</span>
     <span>Ohne .sng</span><span>${missing.filter(m => !m.covered).length} noch ohne Text</span>`;
 }
 
@@ -1993,9 +1923,7 @@ async function ctLogin() {
 
 /* ---------------- Start ---------------- */
 (async () => {
-  window.addEventListener("beforeunload", e => { if (dirty()) e.preventDefault(); });
   await initExport();
-  resetEditor();
   const tab = store.get("tab");
   await loadSongs();
   refreshCtStatus().catch(() => {});

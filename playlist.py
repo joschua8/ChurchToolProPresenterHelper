@@ -81,7 +81,6 @@ class PlaylistSettings:
     include_normal: bool = True          # normale Ablaufpunkte als Kopfzeile
     include_before: bool = True          # Punkte „vor dem Gottesdienst“
     missing_as_header: bool = True       # nicht gefundenes Lied: Kopfzeile mit Hinweis statt weglassen
-    embed_presentations: bool = True     # .pro-Dateien mit in die Playlist packen (wie ProPresenters Export)
     fuzzy: bool = True                   # ähnliche Namen automatisch zuordnen
     add_lords_prayer: bool = True        # Vaterunser unter dem Ablaufpunkt „Vaterunser“ einfügen
     add_silence: bool = True             # Stille-Bilder unter dem Ablaufpunkt „Stille“ einfügen
@@ -783,24 +782,18 @@ def _arrangement_uuid(path: Path) -> str:
 
 
 def build_playlist(name: str, entries: list[dict], root: Path | None,
-                   bundle: dict[str, bytes | Path] | None = None,
-                   embed_presentations: bool = False) -> propresenter_pb2.PlaylistDocument:
+                   bundle: dict[str, bytes | Path] | None = None) -> propresenter_pb2.PlaylistDocument:
     """entries: {"kind": "header", "name", "color"} | {"kind": "presentation", "name", "rel"}
     | {"kind": "media", "name", "files": [Path]} -> neue Präsentation, die samt Medien in `bundle` landet
     (Zip-Pfad -> Inhalt, wie bei ProPresenters eigenem Playlist-Export: <Name>.pro und Media/<Datei>).
-    embed_presentations: auch die .pro-Dateien der Lieder neben `data` packen (nötig unter Windows).
+    Lieder werden NICHT mitgepackt: ProPresenter würde sie beim Öffnen als neue Bibliothek
+    importieren (Duplikate). Sie werden nur über den Pfad in der vorhandenen Bibliothek verwiesen.
     """
     from pro_export import get_template, file_stem, unique_stem  # App-Version wie bei den exportierten Liedern
 
     bundle = {} if bundle is None else bundle
     taken_pro: set[str] = set()
     taken_media: set[str] = set()
-    if embed_presentations and root:
-        for e in entries:
-            f = root / e["rel"] if e["kind"] == "presentation" else None
-            if f and f.is_file() and nfc(f.stem).casefold() not in taken_pro:
-                taken_pro.add(nfc(f.stem).casefold())
-                bundle[nfc(f.name)] = f
 
     doc = propresenter_pb2.PlaylistDocument()
     doc.application_info.CopyFrom(get_template().base.application_info)
