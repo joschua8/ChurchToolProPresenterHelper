@@ -6,9 +6,11 @@
     die schon in der lokalen ProPresenter-Bibliothek liegen. Zuordnung über den Liednamen
     (exakt -> normalisiert -> ähnlich), bei mehreren Treffern nach Bibliotheks-Reihenfolge.
 
-Format (aus einer echten .proplaylist abgeleitet): ZIP (unkomprimiert) mit einer Datei `data`
-= rv.data.PlaylistDocument. Lieder verweisen per `document_path` auf die .pro-Datei;
-ProPresenter löst sie über `local {root: ROOT_SHOW, path: "Libraries/<Bibliothek>/<Name>.pro"}` auf.
+Format (aus echten Exporten von ProPresenter auf macOS und Windows abgeleitet): ZIP (unkomprimiert)
+mit der Datei `data` = rv.data.PlaylistDocument und – wie beim Export aus ProPresenter – den
+verwendeten .pro-Dateien direkt daneben. Lieder verweisen per `document_path` auf die .pro-Datei
+(`local {root: ROOT_SHOW, path: "Libraries/<Bibliothek>/<Name>.pro"}` plus absoluter Pfad) und
+nennen das ausgewählte Arrangement der Präsentation.
 """
 
 from __future__ import annotations
@@ -78,6 +80,7 @@ class PlaylistSettings:
     include_normal: bool = True          # normale Ablaufpunkte als Kopfzeile
     include_before: bool = True          # Punkte „vor dem Gottesdienst“
     missing_as_header: bool = True       # nicht gefundenes Lied: Kopfzeile mit Hinweis statt weglassen
+    embed_presentations: bool = True     # .pro-Dateien mit in die Playlist packen (wie ProPresenters Export)
     fuzzy: bool = True                   # ähnliche Namen automatisch zuordnen
 
     @classmethod
@@ -392,11 +395,6 @@ def _set_color(color, hex_color: str) -> None:
     color.alpha = 1
 
 
-def _win_file_url(path) -> str:
-    p = PureWindowsPath(path)
-    return "file:///" + quote(p.as_posix(), safe="/:")
-
-
 def _document_url(url, root: Path | None, rel: str) -> None:
     """Verweis auf eine Präsentation, wie ProPresenter ihn selbst schreibt."""
     url.local.root = basicTypes_pb2.URL.LocalRelativePath.ROOT_SHOW
@@ -405,12 +403,25 @@ def _document_url(url, root: Path | None, rel: str) -> None:
         return
     full = root / rel
     if sys.platform.startswith("win"):
-        # ProPresenter erwartet auch unter Windows eine Datei-URL (file:///C:/…), keinen Pfad mit „\“.
+        # So schreibt es ProPresenter unter Windows selbst: normaler Pfad mit „\“, keine file://-URL.
         url.platform = basicTypes_pb2.URL.PLATFORM_WIN32
-        url.absolute_string = _win_file_url(full)
+        url.absolute_string = str(PureWindowsPath(full))
     else:
         url.platform = basicTypes_pb2.URL.PLATFORM_MACOS
         url.absolute_string = "file://" + quote(str(full), safe="/")
+
+
+def _arrangement_uuid(path: Path) -> str:
+    """Ausgewähltes (sonst erstes) Arrangement der Präsentation – ProPresenter nennt es im Playlist-Eintrag."""
+    import presentation_pb2
+    try:
+        pres = presentation_pb2.Presentation()
+        pres.ParseFromString(path.read_bytes())
+    except Exception:
+        return ""
+    if pres.selected_arrangement.string:
+        return pres.selected_arrangement.string
+    return pres.arrangements[0].uuid.string if pres.arrangements else ""
 
 
 def build_playlist(name: str, entries: list[dict], root: Path | None) -> propresenter_pb2.PlaylistDocument:
@@ -419,6 +430,12 @@ def build_playlist(name: str, entries: list[dict], root: Path | None) -> propres
 
     doc = propresenter_pb2.PlaylistDocument()
     doc.application_info.CopyFrom(get_template().base.application_info)
+    if sys.platform.startswith("win"):
+        # Mit Mac-Kennung verwirft ProPresenter unter Windows die Verweise auf die Lieder.
+        info = doc.application_info
+        info.platform = type(info).PLATFORM_WINDOWS
+        info.platform_version.Clear()
+        info.platform_version.major_version = 10
     doc.type = propresenter_pb2.PlaylistDocument.TYPE_PRESENTATION
     node = doc.root_node
     node.uuid.string = _uuid()
@@ -435,6 +452,9 @@ def build_playlist(name: str, entries: list[dict], root: Path | None) -> propres
         item.name = e["name"]
         if e["kind"] == "presentation":
             _document_url(item.presentation.document_path, root, e["rel"])
+            arrangement = _arrangement_uuid(root / e["rel"]) if root else ""
+            if arrangement:
+                item.presentation.arrangement.string = arrangement
         else:
             _set_color(item.header.color, e.get("color") or DEFAULT_ITEM_COLOR)
     return doc
@@ -466,10 +486,18 @@ def playlist_entries(rows: list[dict], settings: PlaylistSettings, docs_by_rel: 
     return entries, notes
 
 
-def to_proplaylist(doc: propresenter_pb2.PlaylistDocument) -> bytes:
+def to_proplaylist(doc: propresenter_pb2.PlaylistDocument, files: list[Path] | None = None) -> bytes:
+    """files: .pro-Dateien, die wie bei ProPresenters Export neben `data` ins Paket kommen."""
     buf = io.BytesIO()
     with zipfile.ZipFile(buf, "w", zipfile.ZIP_STORED) as zf:
         zf.writestr("data", doc.SerializeToString())
+        seen: set[str] = set()
+        for f in files or []:
+            name = nfc(f.name)
+            if name.casefold() in seen or not f.is_file():
+                continue
+            seen.add(name.casefold())
+            zf.write(f, name)
     return buf.getvalue()
 
 

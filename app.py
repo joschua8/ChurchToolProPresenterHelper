@@ -4,7 +4,7 @@
 Start:  .venv/bin/python app.py   ->  http://127.0.0.1:5005
 
   * Lieder: alle .sng-Lieder im Ordner songs/ durchsuchen, ohne .sng per Freitext erfassen
-  * ChurchTools: Ablaufpläne ansehen und als ProPresenter-Playlist (.proplaylist) exportieren;
+  * ChurchTools: Ablaufpläne ansehen und als ProPresenter-Playlist (.proPlaylist) exportieren;
     Lieder-Import mit Abgleich (nur neue/geänderte Lieder werden geladen, download_songs.py)
   * ProPresenter: Abgleich Liederdatenbank <-> Lieder-Bibliothek (pp_sync.py), Export als .pro
   * Einstellungen: ChurchTools-Anmeldung, Ordner der ProPresenter-Lieder-Bibliothek
@@ -572,7 +572,7 @@ def put_playlist_settings():
 
 @app.post("/api/playlist")
 def make_playlist():
-    """Zeilen aus der Oberfläche -> .proplaylist (Download). body: {name, items: [{type, title, include, rel}]}"""
+    """Zeilen aus der Oberfläche -> .proPlaylist (Download). body: {name, items: [{type, title, include, rel}]}"""
     data = request.get_json(silent=True) or {}
     name = " ".join((data.get("name") or "").split()) or "Ablaufplan"
     rows = data.get("items") or []
@@ -584,9 +584,10 @@ def make_playlist():
     entries, notes = playlist.playlist_entries(rows, settings, {d.rel: d for d in docs})
     if not entries:
         return error("Keine Einträge ausgewählt.")
-    body = playlist.to_proplaylist(playlist.build_playlist(name, entries, root))
+    files = [root / e["rel"] for e in entries if e["kind"] == "presentation"] if root and settings.embed_presentations else []
+    body = playlist.to_proplaylist(playlist.build_playlist(name, entries, root), files)
     resp = send_file(io.BytesIO(body), mimetype="application/octet-stream", as_attachment=True,
-                     download_name=f"{dl.safe_filename(name)}.proplaylist")
+                     download_name=f"{dl.safe_filename(name)}.proPlaylist")
     resp.headers["X-Playlist-Items"] = str(len(entries))
     resp.headers["X-Playlist-Notes"] = quote(json.dumps(notes, ensure_ascii=False))
     return resp

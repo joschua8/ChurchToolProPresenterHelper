@@ -401,7 +401,7 @@ details.token summary { cursor: pointer; font-size: 13px; color: var(--muted); m
         <div class="pv-head"><h3 style="margin:0">ProPresenter-Playlist</h3><span class="muted" id="pl-saved" style="font-size:12px"></span></div>
         <div class="inner">
           <div class="field"><label for="pl-name">Name der Playlist</label><input type="text" id="pl-name"></div>
-          <button class="btn primary" id="pl-start" style="width:100%" disabled>.proplaylist herunterladen</button>
+          <button class="btn primary" id="pl-start" style="width:100%" disabled>.proPlaylist herunterladen</button>
           <div id="pl-msg" style="margin-top:8px"></div>
           <p class="muted" style="font-size:12px">Lieder verweisen auf die Präsentationen, die schon in deiner ProPresenter-Bibliothek liegen (Zuordnung über den Namen) – sie werden nicht neu aus ChurchTools erzeugt. Importieren wie die Playlist aus ChurchTools.</p>
 
@@ -410,6 +410,7 @@ details.token summary { cursor: pointer; font-size: 13px; color: var(--muted); m
             <label class="check" style="margin-bottom:6px;font-size:13px"><input type="checkbox" data-pl="include_before"> Punkte vor Beginn</label>
             <label class="check" style="margin-bottom:6px;font-size:13px"><input type="checkbox" data-pl="missing_as_header"> Fehlende Lieder als Kopfzeile mit Hinweis</label>
             <label class="check" style="margin-bottom:6px;font-size:13px"><input type="checkbox" data-pl="fuzzy"> Ähnliche Namen automatisch zuordnen</label>
+            <label class="check" style="margin-bottom:6px;font-size:13px" title="Wie beim Export aus ProPresenter – nötig, damit die Lieder unter Windows erscheinen"><input type="checkbox" data-pl="embed_presentations"> Lieder-Dateien in die Playlist packen</label>
           </fieldset>
           <fieldset><legend>Farben der Kopfzeilen</legend>
             <div class="st-row"><span>Überschrift</span><input type="color" data-pl="header_color"></div>
@@ -1554,7 +1555,7 @@ $("#pl-start").onclick = async () => {
     const m = (res.headers.get("Content-Disposition") || "").match(/filename\*=UTF-8''([^;]+)|filename="?([^";]+)/i);
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
-    a.download = m ? decodeURIComponent(m[1] || m[2]) : "Ablaufplan.proplaylist";
+    a.download = m ? decodeURIComponent(m[1] || m[2]) : "Ablaufplan.proPlaylist";
     document.body.appendChild(a); a.click(); a.remove();
     setTimeout(() => URL.revokeObjectURL(a.href), 10000);
     let notes = [];
