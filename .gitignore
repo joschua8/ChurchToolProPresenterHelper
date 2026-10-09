@@ -3,7 +3,7 @@ backup/
 __pycache__/
 build/
 dist/
-version.py
+songbridge/version.py
 songs/
 playlist_settings.json
 .idea/

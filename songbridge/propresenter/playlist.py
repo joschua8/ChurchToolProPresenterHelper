@@ -30,11 +30,11 @@ from datetime import datetime
 from pathlib import Path, PureWindowsPath
 from urllib.parse import quote
 
-import propresenterFormatter  # noqa: F401  (pb2-Module in den Suchpfad)
+from songbridge.paths import DATA_DIR
+from songbridge.propresenter import proto  # noqa: F401  (pb2-Module in den Suchpfad)
+
 import propresenter_pb2  # noqa: E402
 import basicTypes_pb2  # noqa: E402
-
-from paths import DATA_DIR  # noqa: E402
 
 SETTINGS_PATH = Path(os.environ.get("PLAYLIST_SETTINGS", DATA_DIR / "playlist_settings.json"))
 
@@ -686,7 +686,7 @@ def media_presentation(name: str, media: list[tuple[Path, str]], root: Path | No
     media: [(Datei, Name im Bundle unter Media/)]. Verweise: Media/Assets/<Name> im Arbeitsordner.
     """
     import action_pb2
-    from pro_export import get_template
+    from songbridge.propresenter.export import get_template
 
     pres = copy.deepcopy(get_template().base)
     pres.uuid.string = _uid(name)
@@ -800,7 +800,7 @@ def build_playlist(name: str, entries: list[dict], root: Path | None,
     und fragt beim Öffnen, ob vorhandene ersetzt werden sollen. Unter macOS reicht der Pfad (und
     Mitpacken legte dort Duplikate an).
     """
-    from pro_export import get_template, file_stem, unique_stem  # App-Version wie bei den exportierten Liedern
+    from songbridge.propresenter.export import get_template, file_stem, unique_stem  # App-Version wie bei den exportierten Liedern
 
     bundle = {} if bundle is None else bundle
     taken_pro: set[str] = set()

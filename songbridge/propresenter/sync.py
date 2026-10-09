@@ -20,11 +20,12 @@ from collections import Counter
 from dataclasses import dataclass, field
 from pathlib import Path
 
-import pro_export
-from playlist import nfc, norm_name
-from sng import Song, read_sng
+from songbridge.propresenter import export as pro_export
+from songbridge.propresenter import proto  # noqa: F401  (pb2-Module in den Suchpfad)
+from songbridge.propresenter.playlist import nfc, norm_name
+from songbridge.songs.sng import Song, read_sng
 
-import presentation_pb2  # noqa: E402  (über propresenterFormatter im Suchpfad)
+import presentation_pb2  # noqa: E402
 
 # ------------------------------------------------------------------ RTF -> Text
 

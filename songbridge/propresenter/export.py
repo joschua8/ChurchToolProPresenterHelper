@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Export von SongBeamer-Liedern (.sng) nach ProPresenter 7 (.pro).
 
-Ablauf:  .sng  ->  Song  ->  .json (Protobuf-Textformat, wie examples/BeispielZielFormatierung.json)
-               ->  propresenterFormatter.json_to_pro  ->  .pro
+Ablauf:  .sng  ->  Song  ->  .json (Protobuf-Textformat, wie resources/BeispielZielFormatierung.json)
+               ->  formatter.json_to_pro  ->  .pro
 
 Rahmen (App-Version, Foliengröße, Textbox-Grundaufbau) kommt aus der Beispieldatei als Vorlage.
 Alles, was man in der Weboberfläche einstellen kann (Schrift, Farben, Ausrichtung, Ränder …),
@@ -10,8 +10,8 @@ steht in ExportStyle; die Standardwerte entsprechen exakt der Beispieldatei.
 Die Einstellungen der Weboberfläche liegen in export_settings.json und gelten auch für die CLI.
 
 CLI:
-    python pro_export.py                 # alle Lieder aus songs/ -> export/*.pro
-    python pro_export.py --json          # zusätzlich die .json-Zwischendateien schreiben
+    python -m songbridge.propresenter.export          # alle Lieder aus songs/ -> export/*.pro
+    python -m songbridge.propresenter.export --json          # zusätzlich die .json-Zwischendateien schreiben
 """
 
 from __future__ import annotations
@@ -26,17 +26,16 @@ import uuid
 from dataclasses import asdict, dataclass, field, fields
 from pathlib import Path
 
-from propresenterFormatter import formatter
-from propresenterFormatter.formatter import parse_presentation, presentation_to_json
-from sng import Section, Song, read_sng
+from songbridge.paths import DATA_DIR, RES_DIR
+from songbridge.propresenter import formatter, proto  # noqa: F401  (proto: pb2-Module in den Suchpfad)
+from songbridge.propresenter.formatter import parse_presentation, presentation_to_json
+from songbridge.songs.sng import Section, Song, read_sng
 
-import graphicsData_pb2  # noqa: E402  (über propresenterFormatter im Suchpfad)
+import graphicsData_pb2  # noqa: E402
 import hotKey_pb2  # noqa: E402
 
-from paths import DATA_DIR, RES_DIR  # noqa: E402
-
 BASE_DIR = DATA_DIR
-TEMPLATE_PATH = RES_DIR / "examples" / "BeispielZielFormatierung.json"
+TEMPLATE_PATH = RES_DIR / "resources" / "BeispielZielFormatierung.json"
 SETTINGS_PATH = Path(os.environ.get("EXPORT_SETTINGS", DATA_DIR / "export_settings.json"))
 SLIDE_W, SLIDE_H = 1920, 1080
 
@@ -124,7 +123,7 @@ class TextStyle:
 
 @dataclass
 class ExportStyle:
-    """Alle einstellbaren Formatierungen. Standard = examples/BeispielZielFormatierung.json."""
+    """Alle einstellbaren Formatierungen. Standard = resources/BeispielZielFormatierung.json."""
     lines_per_slide: int = 4      # einsprachig
     pairs_per_slide: int = 2      # zweisprachig (Original + Übersetzung)
     main: TextStyle = field(default_factory=TextStyle)
@@ -580,7 +579,7 @@ def song_to_json(song: Song, style: ExportStyle | None = None, key: str = "", na
 
 
 def song_to_pro(song: Song, style: ExportStyle | None = None, key: str = "", name: str = "") -> tuple[str, bytes]:
-    """Song -> (Zwischenformat, .pro-Bytes). Der zweite Schritt läuft über den propresenterFormatter."""
+    """Song -> (Zwischenformat, .pro-Bytes). Der zweite Schritt läuft über formatter.py."""
     text = song_to_json(song, style, key, name)
     return text, formatter.json_to_pro(text)
 
@@ -626,7 +625,7 @@ def export_name(path: Path, songs_dir: Path, song: Song, index: dict | None = No
 
 def file_stem(name: str) -> str:
     """Name -> zulässiger Dateiname (wie beim Download bereinigt)."""
-    from download_songs import safe_filename
+    from songbridge.churchtools import safe_filename
     return safe_filename(name)
 
 
@@ -651,7 +650,7 @@ def main() -> int:
     parser.add_argument("--lines", type=int, help="Zeilen pro Folie (einsprachig), überschreibt export_settings.json")
     args = parser.parse_args()
 
-    from download_songs import load_index
+    from songbridge.churchtools import load_index
 
     style = load_style()
     if args.lines:

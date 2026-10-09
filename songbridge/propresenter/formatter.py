@@ -2,11 +2,11 @@
 """Wandelt eine Präsentation im „.json“-Zwischenformat in eine ProPresenter-7-Datei (.pro) um.
 
 Zwischenformat = Ausgabe von `protoc --decode rv.data.Presentation` (Protobuf-Textformat),
-siehe examples/BeispielZielFormatierung.json. Echtes JSON (protobuf json_format) geht ebenfalls.
+siehe songbridge/resources/BeispielZielFormatierung.json. Echtes JSON (protobuf json_format) geht ebenfalls.
 
 CLI:
-    python -m propresenterFormatter.formatter lied.json [ziel.pro]
-    python -m propresenterFormatter.formatter ordner_mit_json/ [zielordner/]
+    python -m songbridge.propresenter.formatter lied.json [ziel.pro]
+    python -m songbridge.propresenter.formatter ordner_mit_json/ [zielordner/]
 """
 
 from __future__ import annotations
@@ -15,11 +15,9 @@ import re
 import sys
 from pathlib import Path
 
-_HERE = str(Path(__file__).resolve().parent)
-if _HERE not in sys.path:
-    sys.path.insert(0, _HERE)
+from google.protobuf import json_format, text_format
 
-from google.protobuf import json_format, text_format  # noqa: E402
+from songbridge.propresenter import proto  # noqa: F401  (pb2-Module in den Suchpfad)
 
 import presentation_pb2  # noqa: E402
 

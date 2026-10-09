@@ -7,6 +7,8 @@ mit --all alle.
 Lieder ohne hinterlegte .sng-Datei werden in einem Bericht (fehlende_sng.csv)
 aufgeführt und am Ende auf der Konsole ausgegeben.
 
+CLI:  python -m songbridge.churchtools [--all]
+
 Zugangsdaten (in dieser Reihenfolge ausgewertet):
   1. Kommandozeile:   --user / --password  oder  --token
   2. Umgebungsvariablen: CT_USER / CT_PASSWORD  oder  CT_TOKEN
@@ -29,7 +31,7 @@ from typing import Callable
 
 import requests
 
-from sng import is_manual_file
+from songbridge.songs.sng import is_manual_file
 
 DEFAULT_URL = "https://kirche-am-fahlt.church.tools"
 PAGE_SIZE = 100

@@ -1962,6 +1962,12 @@ function renderUpdate() {
   $("#s-up-msg").innerHTML = msg;
 }
 
+function installedNote(version) {
+  return `Version <b>${esc(version)}</b> ist installiert, SongBridge wurde beendet. Bitte das Programm neu öffnen –
+    macOS fragt beim ersten Start der neuen Version einmal nach:
+    Systemeinstellungen → Datenschutz &amp; Sicherheit → „Dennoch öffnen“.`;
+}
+
 async function refreshUpdate() {
   try { upState = await api("/api/update"); renderUpdate(); } catch {}
 }
@@ -1971,6 +1977,10 @@ async function installUpdate(btn) {
   try {
     const res = await api("/api/update/install", {method: "POST", body: {}});
     $("#update-bar").hidden = false;
+    if (!res.restart) {
+      $("#update-bar").innerHTML = `<div class="notice ok"><span>${installedNote(res.version)}</span></div>`;
+      return;
+    }
     $("#update-bar").innerHTML = `<div class="notice ok"><span>Version ${esc(res.version)} installiert – Programm startet neu …</span></div>`;
     const old = upState.version;
     for (let i = 0; i < 90; i++) {  // warten, bis die neue Fassung antwortet
