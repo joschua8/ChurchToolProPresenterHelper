@@ -12,6 +12,11 @@ on:
 permissions:
   contents: write
 
+# Zwei schnelle Pushes: der ältere Lauf wird abgebrochen, damit kein älteres Release das neuere überholt.
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   version:
     runs-on: ubuntu-latest
