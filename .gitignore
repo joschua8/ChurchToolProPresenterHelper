@@ -4,3 +4,8 @@ __pycache__/
 build/
 dist/
 version.py
+songs/
+playlist_settings.json
+.idea/
+.venv/
+.DS_Store

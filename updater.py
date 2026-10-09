@@ -1,7 +1,7 @@
 """Selbst-Aktualisierung des gepackten Programms über GitHub-Releases.
 
 Ablauf: Beim Start (vor dem Server) und danach alle paar Stunden wird das neueste Release von
-github.com/joschua8/ChurchToolProPresenterHelper abgefragt. Ist es neuer als die eigene Version,
+github.com/joschua8/churchtools-propresenter-bridge abgefragt. Ist es neuer als die eigene Version,
 wird die ZIP für diese Plattform geladen, das Programm daneben ausgepackt und die laufende Datei
 ersetzt; danach startet das Programm neu.
 
@@ -36,10 +36,10 @@ try:
 except ImportError:  # Quellcode ohne Build
     VERSION = "dev"
 
-REPO = "joschua8/ChurchToolProPresenterHelper"
-LATEST_URL = os.environ.get("LIEDERVERWALTUNG_UPDATE_URL", f"https://api.github.com/repos/{REPO}/releases/latest")  # Env: zum Testen
+REPO = "joschua8/churchtools-propresenter-bridge"
+LATEST_URL = os.environ.get("LIEDBRUECKE_UPDATE_URL", f"https://api.github.com/repos/{REPO}/releases/latest")  # Env: zum Testen
 CHECK_INTERVAL = 6 * 3600
-ENV_DISABLE = "LIEDERVERWALTUNG_NO_UPDATE"
+ENV_DISABLE = "LIEDBRUECKE_NO_UPDATE"
 
 
 class UpdateError(RuntimeError):
@@ -53,10 +53,10 @@ def version_tuple(v: str) -> tuple[int, ...]:
 def asset_name() -> str:
     """Name der Release-ZIP für dieses Programm (wie im Build-Workflow)."""
     if sys.platform.startswith("win"):
-        return "Liederverwaltung-Windows.zip"
+        return "Liedbruecke-Windows.zip"
     if sys.platform == "darwin":
         arm = platform.machine().lower() in ("arm64", "aarch64")
-        return f"Liederverwaltung-macOS-{'AppleSilicon' if arm else 'Intel'}.zip"
+        return f"Liedbruecke-macOS-{'AppleSilicon' if arm else 'Intel'}.zip"
     return ""
 
 
@@ -147,7 +147,7 @@ class Updater:
             try:
                 with zipfile.ZipFile(archive) as zf:
                     member = next((n for n in zf.namelist()
-                                   if Path(n).name.startswith("Liederverwaltung") and not n.endswith((".md", "/"))), None)
+                                   if Path(n).name.startswith("Liedbruecke") and not n.endswith((".md", "/"))), None)
                     if member is None:
                         raise UpdateError("Programmdatei fehlt in der ZIP.")
                     new = exe.with_name(exe.name + ".new")  # neben dem Programm: rename geht nicht über Laufwerke

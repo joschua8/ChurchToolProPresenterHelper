@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Liederverwaltung</title>
+<title>Liedbrücke</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Ctext y=%22.9em%22 font-size=%2290%22%3E%E2%99%AA%3C/text%3E%3C/svg%3E">
 <style>
 :root {
@@ -299,7 +299,7 @@ details.token summary { cursor: pointer; font-size: 13px; color: var(--muted); m
 </head>
 <body>
 <header>
-  <div class="brand"><div class="logo">♪</div><h1>Liederverwaltung</h1></div>
+  <div class="brand"><div class="logo">♪</div><h1>Liedbrücke</h1></div>
   <nav class="main">
     <button data-main="lieder"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>Lieder</button>
     <button data-main="ct"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M5 8h14"/></svg>ChurchTools</button>
@@ -388,7 +388,7 @@ details.token summary { cursor: pointer; font-size: 13px; color: var(--muted); m
 
           <fieldset style="margin-top:12px"><legend>Automatisch einfügen</legend>
             <label class="check" style="margin-bottom:6px;font-size:13px"><input type="checkbox" data-pl="add_lords_prayer"> Vaterunser unter „Vaterunser“</label>
-            <label class="check" style="margin-bottom:6px;font-size:13px"><input type="checkbox" data-pl="add_silence"> Stille-Bilder unter „Stille“</label>
+            <label class="check" style="margin-bottom:6px;font-size:13px"><input type="checkbox" data-pl="add_silence"> Stille-Bild unter „Stille“</label>
           </fieldset>
           <label class="check" style="margin-top:10px;font-size:13px" title="Unter Windows nötig, damit ProPresenter die Lieder anzeigt (fragt dann, ob vorhandene ersetzt werden sollen). Unter macOS aus lassen, sonst entstehen Duplikate."><input type="checkbox" data-pl="embed_songs"> Lieder in die Playlist-Datei packen</label>
         </div>
@@ -1362,7 +1362,7 @@ function renderPlan() {
     const auto = r.auto && r.auto !== "files" ? ' <span class="badge info" title="Automatisch eingefügt">auto</span>' : "";
     if (r.type === "media") {
       const md = r.media || {};
-      const what = md.source === "silence" ? `${md.count || 0} ${md.count === 1 ? "Bild" : "Bilder"} aus dem Stille-Ordner`
+      const what = md.source === "silence" ? `ein zufälliges von ${md.count || 0} ${md.count === 1 ? "Bild" : "Bildern"} aus dem Stille-Ordner`
         : md.kind === "slides" ? (/\.pdf$/i.test(md.name || "") ? "PDF → Bilder" : "Präsentation → Bilder")
         : {image: "Bild", video: "Video", audio: "Audio"}[md.kind] || "Datei";
       body = `<div class="ttl"><span>${md.source === "silence" ? "◐" : "📎"} ${esc(r.title)}</span>${auto}</div>
@@ -1447,8 +1447,8 @@ function applyLibrary(data) {
     ? `<span style="color:var(--ok)">✓</span> ${esc(data.songDir)} · ${data.songDirCount} Lieder (.pro)`
     : '<span style="color:var(--danger)">Keine Lieder-Bibliothek gefunden – bitte den Ordner eintragen.</span>';
   $("#s-silence").value = plSettings.silence_dir;
-  $("#s-silence-info").innerHTML = !plSettings.silence_dir ? "Wird im Ablaufplan unter dem Punkt „Stille“ eingefügt."
-    : data.silenceCount ? `<span style="color:var(--ok)">✓</span> ${data.silenceCount} Bilder`
+  $("#s-silence-info").innerHTML = !plSettings.silence_dir ? "Ein zufälliges Bild wird im Ablaufplan unter jedem Punkt mit „Stille“ eingefügt."
+    : data.silenceCount ? `<span style="color:var(--ok)">✓</span> ${data.silenceCount} Bilder – je Ablaufpunkt „Stille“ wird eins zufällig gewählt`
     : '<span style="color:var(--danger)">Keine .jpg/.png-Bilder in diesem Ordner.</span>';
   $("#s-libpick-field").hidden = !data.libraryDirs.length;
   $("#s-libpick").innerHTML = '<option value="">– Bibliothek auswählen –</option>' +

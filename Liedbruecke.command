@@ -1,5 +1,5 @@
 #!/bin/bash
-# Doppelklick im Finder startet die lokale Liederverwaltung und öffnet den Browser.
+# Doppelklick im Finder startet die Liedbrücke und öffnet den Browser.
 cd "$(dirname "$0")"
 [ -d .venv ] || python3 -m venv .venv
 .venv/bin/pip install -q -r requirements.txt

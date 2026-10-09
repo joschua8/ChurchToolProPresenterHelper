@@ -18,6 +18,7 @@ import io
 import tempfile
 import json
 import os
+import random
 import sys
 import threading
 import time
@@ -570,7 +571,7 @@ def _media_files(row: dict, settings: playlist.PlaylistSettings, tmp: Path) -> l
         files = playlist.silence_images(settings)
         if not files:
             raise RuntimeError("keine Stille-Bilder (Ordner unter Einstellungen festlegen)")
-        return files
+        return [random.choice(files)]  # ein Bild, jedes Mal ein anderes
     if media.get("source") != "ct":
         raise RuntimeError("unbekannte Quelle")
     client = ct.get()
@@ -910,11 +911,11 @@ def main() -> None:
                 break
             time.sleep(0.5)
     if _port_in_use(args.port):  # läuft schon (z. B. zweiter Doppelklick) -> nur Browser öffnen
-        print(f"Liederverwaltung läuft bereits auf {url}")
+        print(f"Liedbrücke läuft bereits auf {url}")
         if not args.no_browser:
             webbrowser.open(url)
         return
-    print(f"Liederverwaltung {updater.VERSION} läuft auf {url}  (Beenden: dieses Fenster schließen oder Strg+C)")
+    print(f"Liedbrücke {updater.VERSION} läuft auf {url}  (Beenden: dieses Fenster schließen oder Strg+C)")
     if updater.can_update()[0]:
         threading.Thread(target=_update_loop, args=(5 if args.after_update else 60,), daemon=True).start()
     print(f"Datenordner: {paths.DATA_DIR}")

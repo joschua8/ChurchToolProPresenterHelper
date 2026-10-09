@@ -105,7 +105,10 @@ class PlaylistSettings:
                 if isinstance(value, str) and re.fullmatch(r"#[0-9a-fA-F]{6}", value):
                     setattr(s, f.name, value.lower())
             elif isinstance(value, str):
-                setattr(s, f.name, value.strip())
+                value = value.strip()
+                if f.name in ("show_root", "song_library", "silence_dir"):
+                    value = value.strip('"\'').strip()  # Windows „Als Pfad kopieren“ setzt Anführungszeichen
+                setattr(s, f.name, value)
         return s
 
     def to_dict(self) -> dict:
@@ -453,6 +456,7 @@ def find_lords_prayer(matcher: Matcher, root: Path | None) -> Match:
 
 
 def silence_images(settings: PlaylistSettings) -> list[Path]:
+    """Alle Bilder im Stille-Ordner; in die Playlist kommt je Ablaufpunkt eins davon (zufällig)."""
     folder = Path(settings.silence_dir).expanduser() if settings.silence_dir else None
     if not folder or not folder.is_dir():
         return []
@@ -519,8 +523,9 @@ def add_auto_rows(rows: list[dict], matcher: Matcher, root: Path | None, setting
                                  song={"songId": None, "arrangementId": None, "title": "Vaterunser",
                                        "arrangement": "", "key": ""},
                                  match=prayer.to_json()))
-        if key == "stille" or key.startswith("stille"):
-            out.append(_auto_row(f"auto-stille-{row['id']}", "media", "stille", "Stille-Bilder", row["before"],
+        # Jeder Ablaufpunkt mit „Stille“ im Titel („Stille“, „Einladung zur Stille“, „Moment der Stille“ …)
+        if "stille" in key:
+            out.append(_auto_row(f"auto-stille-{row['id']}", "media", "stille", "Stille-Bild", row["before"],
                                  media={"source": "silence", "kind": "image", "count": len(images)},
                                  error=silence_error))
     rest = files_after.get(None, [])

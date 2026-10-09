@@ -15,7 +15,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 # Kennzeichnet von Hand erfasste Lieder; der ChurchTools-Import überschreibt sie nie.
-MANUAL_EDITOR = "Liederverwaltung (manuell)"
+MANUAL_EDITOR = "Liederverwaltung (manuell)"  # früherer Programmname – Kennung in vorhandenen Dateien, nicht ändern
 
 # Freitext-Schlüsselwort -> SongBeamer-Abschnittstyp
 LABEL_TYPES = {
