@@ -5,8 +5,7 @@ Liedbrücke holt die Lieder (SongBeamer-Dateien) aus ChurchTools, wandelt sie in
 und macht aus dem Ablaufplan eines Gottesdienstes mit einem Klick eine fertige ProPresenter-Playlist –
 inklusive Predigtfolien, Vaterunser und Stille-Bild.
 
-Liedbrücke läuft lokal auf dem Rechner, auf dem ProPresenter läuft (macOS oder Windows), und wird im Browser bedient.
-Es ist ein einzelnes Programm, eine Python-Installation ist nicht nötig.
+
 
 > Liedbrücke ist ein privates Gemeindeprojekt und steht in keiner Verbindung zu ChurchTools (ECGroup) oder
 > Renewed Vision (ProPresenter).
@@ -25,7 +24,7 @@ Es ist ein einzelnes Programm, eine Python-Installation ist nicht nötig.
 | **Lieder hochladen** | Lieder ohne `.sng` als CCLI-SongSelect-Datei (`.usr`/`.txt`) oder `.sng` per Drag & Drop hinzufügen. |
 | **Export nach ProPresenter** | `.sng` → `.pro`, mit einstellbarer Formatierung (Schrift, Größe, Farben, Zeilen pro Folie, Textbox per Maus verschieben), Folienvorschau und Tastenkürzeln je Liedteil (Strophe 1 = A, Refrain = C, Bridge = B …). |
 | **Abgleich** | Vergleicht die Liederdatenbank mit deiner ProPresenter-Lieder-Bibliothek: was fehlt, was hat anderen Text – und aktualisiert auf Wunsch (mit Sicherung). |
-| **Selbst-Update** | Beim Start sucht das Programm auf GitHub nach einer neuen Version und aktualisiert sich selbst. |
+
 
 ## Installation
 
@@ -47,18 +46,8 @@ nur unter Windows – ein installiertes Microsoft PowerPoint. PDF, Bilder, Video
 
 ## Bedienung
 
-### 1. Einrichten (einmalig, „Einstellungen“)
 
-- **ChurchTools-Anmeldung:** Adresse deiner ChurchTools-Instanz, Benutzername, Passwort (ggf. Zwei-Faktor-Code).
-  Das Passwort wird nicht gespeichert. Optional: mit Login-Token anmelden und den Token speichern.
-- **ProPresenter:** Den Arbeitsordner findet das Programm in der Regel selbst. Sonst den Ordner der
-  Lieder-Bibliothek eintragen, z. B.
-  - macOS: `~/Library/Application Support/RenewedVision/ProPresenter/…/Libraries/Songs`
-  - Windows: `%APPDATA%\RenewedVision\ProPresenter\LocalWorkspaces\ProPresenter\Libraries\Songs`
-- **Stille-Bilder:** Ordner mit `.jpg`/`.png`-Bildern. Je Ablaufpunkt „Stille“ wird eins zufällig ausgewählt.
-- **Bibliotheken-Reihenfolge:** Gibt es ein Lied in mehreren Bibliotheken, gewinnt die obere.
-
-### 2. Playlist für den Gottesdienst („ChurchTools → Ablaufpläne“)
+### Playlist für den Gottesdienst („ChurchTools → Ablaufpläne“)
 
 1. Termin auswählen. Der Ablaufplan erscheint mit der Zuordnung jedes Liedes:
    grün = gefunden, gelb = ähnlicher Name (bitte prüfen), rot = fehlt.
@@ -72,7 +61,7 @@ nur unter Windows – ein installiertes Microsoft PowerPoint. PDF, Bilder, Video
 
 ### 3. Lieder pflegen
 
-- **ChurchTools → Lieder-Import:** lädt alle `.sng` (Zwei-Faktor-Code ggf. vorher eintragen).
+- **ChurchTools → Lieder-Import:** lädt alle `.sng` 
 - **Lieder → Hochladen:** SongSelect- oder `.sng`-Dateien hineinziehen.
 - **ProPresenter → Export & Formatierung:** Lieder auswählen, Formatierung einstellen, als ZIP mit `.pro`-Dateien laden
   und in ProPresenter importieren.
@@ -83,33 +72,10 @@ nur unter Windows – ein installiertes Microsoft PowerPoint. PDF, Bilder, Video
 Lieder und Einstellungen liegen im Ordner `Liedbruecke` in deinem Benutzerordner (bzw. `Liederverwaltung` aus
 früheren Versionen). Zum Umziehen einfach den Ordner mitkopieren. Anderer Ort: Umgebungsvariable `LIEDBRUECKE_DATA`.
 
-### Updates
 
-Beim Start und danach alle 6 Stunden wird nach einer neuen Version gesucht. Beim Start wird sie automatisch
-installiert, im laufenden Betrieb erscheint oben ein Hinweis „Jetzt aktualisieren“.
-Abschalten unter **Einstellungen → Programm-Updates**.
 
-## Entwicklung
 
-```bash
-python3 -m venv .venv
-.venv/bin/pip install -r requirements.txt
-.venv/bin/python app.py            # http://127.0.0.1:5005
-```
 
-| Datei | Aufgabe |
-|---|---|
-| `app.py` | Flask-Server (nur `127.0.0.1`) und REST-API |
-| `web/index.html` | komplette Oberfläche, kein Build-Schritt |
-| `download_songs.py` | ChurchTools-Client und Lieder-Import (auch als CLI) |
-| `playlist.py` | Ablaufplan → `.proPlaylist`, Liedzuordnung, Medien-Präsentationen |
-| `sng.py`, `songselect.py` | SongBeamer- und SongSelect-Dateien lesen/schreiben |
-| `pro_export.py`, `propresenterFormatter/` | `.sng` → ProPresenter-7-`.pro` |
-| `pp_sync.py` | Abgleich Liederdatenbank ↔ ProPresenter-Bibliothek |
-| `updater.py` | Selbst-Update über GitHub-Releases |
-
-Jeder Push auf `master` baut über GitHub Actions die Programme für macOS und Windows (PyInstaller) und
-veröffentlicht sie als Release – von dort holen sich die installierten Programme ihre Updates.
 
 ## Credits
 
@@ -120,4 +86,3 @@ veröffentlicht sie als Release – von dort holen sich die installierten Progra
   (siehe [`propresenterFormatter/LICENSE-ProPresenter7-Proto`](propresenterFormatter/LICENSE-ProPresenter7-Proto)).
   Vielen Dank!
 - [ChurchTools](https://church.tools) für die offene REST-API.
-- ProPresenter ist eine Marke von Renewed Vision, ChurchTools eine Marke der ECGroup GmbH.
