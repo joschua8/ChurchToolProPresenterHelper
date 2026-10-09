@@ -35,5 +35,13 @@ Im Ordner **Liederverwaltung** in deinem Benutzerordner
 Zum Umziehen auf einen anderen Rechner einfach diesen Ordner mitkopieren.
 Ein anderer Ort lässt sich über die Umgebungsvariable `LIEDERVERWALTUNG_DATA` einstellen.
 
-Die ProPresenter-Bibliothek und die ChurchTools-Anmeldung stellst du in der Oberfläche unter
-**Einstellungen** ein.
+Die ProPresenter-Bibliothek, den Ordner mit den Stille-Bildern und die ChurchTools-Anmeldung
+stellst du in der Oberfläche unter **Einstellungen** ein.
+
+## PowerPoint-Dateien im Ablaufplan
+
+Präsentationen (.pptx/.ppt), die in ChurchTools am Termin hängen, werden für die Playlist in Bilder
+umgewandelt. Dafür braucht es **LibreOffice** (kostenlos, libreoffice.org) oder – nur unter
+Windows – ein installiertes **Microsoft PowerPoint**. PDF, Bilder, Videos und Audio gehen ohne.
+Andere Dateien (z. B. .docx) kommen nicht in die Playlist; ihre Namen stehen in einer orangen
+Kopfzeile ganz oben, damit nichts übersehen wird.

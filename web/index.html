@@ -1410,7 +1410,7 @@ function renderPlan() {
     $("#plan-list").innerHTML = '<li style="display:block;border:0" class="muted">Der Ablaufplan ist leer.</li>';
     $("#pl-start").disabled = true; return;
   }
-  const color = r => r.type === "header" ? plSettings.header_color : plSettings.item_color;
+  const color = r => r.auto === "skipped" ? "#ff9500" : r.type === "header" ? plSettings.header_color : plSettings.item_color;
   const fmtDur = s => s ? `${Math.round(s / 60)} Min` : "";
   $("#plan-list").innerHTML = rows.map((r, i) => {
     const sub = [r.before ? "vor Beginn" : "", fmtDur(r.duration), r.responsible].filter(Boolean).map(esc).join(" · ");
@@ -1570,7 +1570,7 @@ $("#pl-start").onclick = async () => {
   try {
     const res = await fetch("/api/playlist", {method: "POST", headers: {"Content-Type": "application/json"},
       body: JSON.stringify({name: $("#pl-name").value, settings: plSettings,
-        items: plan.rows.map(r => ({type: r.type, title: r.title, include: r.include, rel: r.type === "song" ? r.rel : "", media: r.media || null}))})});
+        items: plan.rows.map(r => ({type: r.type, title: r.title, include: r.include, rel: r.type === "song" ? r.rel : "", media: r.media || null, auto: r.auto || ""}))})});
     if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || `HTTP ${res.status}`);
     const blob = await res.blob();
     const m = (res.headers.get("Content-Disposition") || "").match(/filename\*=UTF-8''([^;]+)|filename="?([^";]+)/i);

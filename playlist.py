@@ -491,14 +491,19 @@ def add_auto_rows(rows: list[dict], matcher: Matcher, root: Path | None, setting
     prayer = None
 
     files_after: dict[int, list[dict]] = {}
+    skipped: list[str] = []  # .docx & Co. kommen nicht in die Playlist, nur als Hinweis-Kopfzeile
     for f in event_files:
         kind = media_kind(f["name"])
+        if not kind:
+            skipped.append(f["name"])
+            continue
         file_row = _auto_row(f"file-{f['id']}", "media", "file", f["name"],
-                             media={"source": "ct", "fileId": f["id"], "name": f["name"], "kind": kind},
-                             error="" if kind else "Dateityp wird nicht unterstützt.")
+                             media={"source": "ct", "fileId": f["id"], "name": f["name"], "kind": kind})
         files_after.setdefault(_file_target(rows, f["name"]), []).append(file_row)
 
     out: list[dict] = []
+    if skipped:
+        out.append(_auto_row("auto-skipped", "header", "skipped", "Nicht übernommene Dateien: " + ", ".join(skipped)))
     for i, row in enumerate(rows):
         out.append(row)
         out.extend(files_after.get(i, []))
@@ -612,10 +617,31 @@ end run'''
     return target
 
 
+def _powerpoint_to_pdf(path: Path, out_dir: Path) -> Path:
+    """Windows ohne LibreOffice: installiertes PowerPoint per COM (PowerShell) nach PDF."""
+    import subprocess
+    target = (out_dir / f"{path.stem}.pdf").resolve()
+    script = ("$ErrorActionPreference='Stop'; $pp = New-Object -ComObject PowerPoint.Application; "
+              "try { $p = $pp.Presentations.Open($env:LV_SRC, $true, $false, $false); "
+              "$p.SaveAs($env:LV_DST, 32); $p.Close() } finally { $pp.Quit() }")
+    env = {**os.environ, "LV_SRC": str(path.resolve()), "LV_DST": str(target)}
+    try:
+        res = subprocess.run(["powershell", "-NoProfile", "-NonInteractive", "-Command", script],
+                             capture_output=True, text=True, timeout=300, env=env,
+                             creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
+    except (OSError, subprocess.TimeoutExpired) as exc:
+        raise RuntimeError(f"PowerPoint nicht erreichbar: {exc}") from exc
+    if res.returncode != 0 or not target.exists():
+        raise RuntimeError("Weder LibreOffice noch PowerPoint konnten die Datei umwandeln: "
+                           f"{(res.stderr or res.stdout).strip()[:200]}")
+    return target
+
+
 def slides_to_images(path: Path, out_dir: Path) -> list[Path]:
     """PowerPoint/Keynote/PDF -> ein JPEG (1920 px breit) je Folie, benannt „<Datei> 1.jpg“ …
 
-    PowerPoint geht über LibreOffice headless nach PDF (keine Dialoge), sonst über Keynote.
+    PowerPoint geht über LibreOffice headless nach PDF (keine Dialoge), sonst über PowerPoint (Windows)
+    bzw. Keynote (macOS).
     Wirft RuntimeError, wenn das nicht geht.
     """
     import subprocess
@@ -636,6 +662,8 @@ def slides_to_images(path: Path, out_dir: Path) -> list[Path]:
         pdf = pdf_dir / f"{path.stem}.pdf"
         if res.returncode != 0 or not pdf.exists():
             raise RuntimeError(f"LibreOffice konnte die Datei nicht umwandeln: {(res.stderr or res.stdout).strip()[:200]}")
+    elif sys.platform.startswith("win"):
+        pdf = _powerpoint_to_pdf(path, out_dir)
     else:
         pdf = _keynote_to_pdf(path, out_dir)
     return pdf_to_images(pdf, out_dir, path.stem)
@@ -851,6 +879,8 @@ def playlist_entries(rows: list[dict], settings: PlaylistSettings, docs_by_rel: 
                 notes.append(f"„{title}“ nicht in der ProPresenter-Bibliothek gefunden – weggelassen.")
         elif title:
             color = settings.header_color if kind == "header" else settings.item_color
+            if row.get("auto") == "skipped":
+                color = MISSING_COLOR
             entries.append({"kind": "header", "name": title, "color": color})
     return entries, notes
 
