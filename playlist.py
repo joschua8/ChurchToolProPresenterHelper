@@ -85,6 +85,9 @@ class PlaylistSettings:
     add_lords_prayer: bool = True        # Vaterunser unter dem Ablaufpunkt „Vaterunser“ einfügen
     add_silence: bool = True             # Stille-Bilder unter dem Ablaufpunkt „Stille“ einfügen
     silence_dir: str = ""                # Ordner mit den Stille-Bildern (.jpg/.png)
+    # Lieder-.pro mit in die Playlist packen, wie ProPresenters eigener Export. Unter Windows nötig
+    # (sonst bleiben die Lied-Einträge leer); unter macOS legt ProPresenter damit Duplikate an.
+    embed_songs: bool = sys.platform.startswith("win")
 
     @classmethod
     def from_dict(cls, data: dict | None) -> "PlaylistSettings":
@@ -782,18 +785,27 @@ def _arrangement_uuid(path: Path) -> str:
 
 
 def build_playlist(name: str, entries: list[dict], root: Path | None,
-                   bundle: dict[str, bytes | Path] | None = None) -> propresenter_pb2.PlaylistDocument:
+                   bundle: dict[str, bytes | Path] | None = None,
+                   embed_songs: bool = False) -> propresenter_pb2.PlaylistDocument:
     """entries: {"kind": "header", "name", "color"} | {"kind": "presentation", "name", "rel"}
     | {"kind": "media", "name", "files": [Path]} -> neue Präsentation, die samt Medien in `bundle` landet
     (Zip-Pfad -> Inhalt, wie bei ProPresenters eigenem Playlist-Export: <Name>.pro und Media/<Datei>).
-    Lieder werden NICHT mitgepackt: ProPresenter würde sie beim Öffnen als neue Bibliothek
-    importieren (Duplikate). Sie werden nur über den Pfad in der vorhandenen Bibliothek verwiesen.
+    embed_songs: auch die Lieder-.pro (Datei aus der Bibliothek, unverändert) neben `data` packen.
+    Unter Windows nötig – ProPresenter löst dort die Verweise nur über die mitgelieferten Dateien auf
+    und fragt beim Öffnen, ob vorhandene ersetzt werden sollen. Unter macOS reicht der Pfad (und
+    Mitpacken legte dort Duplikate an).
     """
     from pro_export import get_template, file_stem, unique_stem  # App-Version wie bei den exportierten Liedern
 
     bundle = {} if bundle is None else bundle
     taken_pro: set[str] = set()
     taken_media: set[str] = set()
+    if embed_songs and root:
+        for e in entries:
+            f = root / e["rel"] if e["kind"] == "presentation" else None
+            if f and f.is_file() and nfc(f.stem).casefold() not in taken_pro:
+                taken_pro.add(nfc(f.stem).casefold())
+                bundle[nfc(f.name)] = f
 
     doc = propresenter_pb2.PlaylistDocument()
     doc.application_info.CopyFrom(get_template().base.application_info)

@@ -18,6 +18,7 @@ import io
 import tempfile
 import json
 import os
+import sys
 import threading
 import time
 import webbrowser
@@ -35,6 +36,7 @@ import paths
 import pp_sync
 import pro_export
 import songselect
+import updater
 from sng import (
     Song,
     build_sng,
@@ -294,18 +296,21 @@ def export_zip():
 
 def load_app_settings() -> dict:
     """ChurchTools-Adresse, Benutzername und (nur wenn gewünscht) Login-Token."""
-    data = {"ct_url": dl.DEFAULT_URL, "ct_user": "", "ct_token": ""}
+    data = {"ct_url": dl.DEFAULT_URL, "ct_user": "", "ct_token": "", "auto_update": True}
     try:
         saved = json.loads(APP_SETTINGS_PATH.read_text(encoding="utf-8"))
         if isinstance(saved, dict):
             data.update({k: str(saved[k]).strip() for k in data if isinstance(saved.get(k), str)})
+            if isinstance(saved.get("auto_update"), bool):
+                data["auto_update"] = saved["auto_update"]
     except (OSError, ValueError):
         pass
     return data
 
 
 def save_app_settings(**changes) -> dict:
-    data = {**load_app_settings(), **{k: (v or "").strip() for k, v in changes.items()}}
+    changes = {k: v if isinstance(v, bool) else (v or "").strip() for k, v in changes.items()}
+    data = {**load_app_settings(), **changes}
     APP_SETTINGS_PATH.write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")
     try:
         APP_SETTINGS_PATH.chmod(0o600)  # enthält ggf. den Login-Token
@@ -504,7 +509,7 @@ def ct_plan(event_id: int):
     for f in files:
         # Der Titel am Termin ist nur ein Anzeigename – Dateityp über den echten Dateinamen bestimmen.
         try:
-            f["name"] = client.file_meta(f["id"])[1] or f["name"]
+            f["name"] = client.file_meta(f["id"], f["name"])[1] or f["name"]
         except (dl.ChurchToolsError, requests.RequestException):
             pass
     settings, root, docs = _library()
@@ -572,7 +577,7 @@ def _media_files(row: dict, settings: playlist.PlaylistSettings, tmp: Path) -> l
     if client is None:
         raise RuntimeError("nicht bei ChurchTools angemeldet")
     try:
-        url, filename = client.file_meta(str(media.get("fileId")))
+        url, filename = client.file_meta(str(media.get("fileId")), str(media.get("name") or ""))
     except (dl.ChurchToolsError, requests.RequestException) as exc:
         raise RuntimeError(f"Datei nicht abrufbar ({exc})") from exc
     # Typ erst am echten Dateinamen prüfen, dann laden – .docx & Co. werden gar nicht heruntergeladen.
@@ -610,7 +615,7 @@ def make_playlist():
         if not entries:
             return error("Keine Einträge ausgewählt.")
         bundle: dict = {}
-        doc = playlist.build_playlist(name, entries, root, bundle)
+        doc = playlist.build_playlist(name, entries, root, bundle, settings.embed_songs)
         body = playlist.to_proplaylist(doc, bundle)
     resp = send_file(io.BytesIO(body), mimetype="application/octet-stream", as_attachment=True,
                      download_name=f"{dl.safe_filename(name)}.proPlaylist")
@@ -798,7 +803,81 @@ def pp_write():
 
 @app.get("/api/config")
 def config():
-    return jsonify({"defaultUrl": dl.DEFAULT_URL, "songsDir": str(SONGS_DIR)})
+    return jsonify({"defaultUrl": dl.DEFAULT_URL, "songsDir": str(SONGS_DIR), "version": updater.VERSION})
+
+
+# ------------------------------------------------------------------------ Updates
+
+
+def update_status() -> dict:
+    return {**updater.updater.status(), "auto": load_app_settings()["auto_update"]}
+
+
+@app.get("/api/update")
+def get_update():
+    return jsonify(update_status())
+
+
+@app.post("/api/update/check")
+def check_update():
+    if updater.can_update()[0]:
+        updater.updater.check()
+    return jsonify(update_status())
+
+
+@app.put("/api/update/settings")
+def put_update_settings():
+    save_app_settings(auto_update=bool((request.get_json(silent=True) or {}).get("auto")))
+    return jsonify(update_status())
+
+
+@app.post("/api/update/install")
+def install_update():
+    """Neue Fassung laden, Programmdatei ersetzen und neu starten (die Seite lädt sich danach neu)."""
+    up = updater.updater
+    latest = up.status()["available"]
+    if not latest:
+        return error("Kein Update verfügbar.")
+    with up.lock:
+        if up.installing:
+            return error("Update läuft bereits.", 409)
+        up.installing = True
+    try:
+        up.install(latest)
+    except updater.UpdateError as exc:
+        with up.lock:
+            up.installing = False
+        return error(str(exc))
+    port = request.host.rsplit(":", 1)[-1]
+    # Antwort erst ausliefern, dann neu starten
+    threading.Timer(1.0, updater.restart, args=(["--port", port, "--no-browser", "--after-update"],)).start()
+    return jsonify({"ok": True, "version": latest["version"]})
+
+
+def _update_loop(first_delay: float) -> None:
+    """Prüft regelmäßig auf Updates; installiert wird im Betrieb nur auf Knopfdruck (Banner in der Oberfläche)."""
+    time.sleep(first_delay)
+    while True:
+        updater.updater.check()
+        time.sleep(updater.CHECK_INTERVAL)
+
+
+def _update_on_start(args) -> None:
+    """Beim Start (noch bevor der Server läuft, also ohne laufende Arbeit zu stören) automatisch aktualisieren."""
+    updater.cleanup_old()
+    if args.after_update or not updater.can_update()[0] or not load_app_settings()["auto_update"]:
+        return
+    print(f"Version {updater.VERSION} – suche nach Updates …")
+    latest = updater.updater.check(timeout=5)
+    if not latest:
+        return
+    try:
+        updater.updater.install(latest)
+    except updater.UpdateError as exc:
+        print(f"Update nicht möglich: {exc}")
+        return
+    print("Starte neu …")
+    updater.restart(sys.argv[1:] + ["--after-update"])
 
 
 # ------------------------------------------------------------------------ Seite
@@ -820,15 +899,24 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Lokale Weboberfläche für die Liederdatenbank")
     parser.add_argument("--port", type=int, default=5005)
     parser.add_argument("--no-browser", action="store_true", help="Browser nicht automatisch öffnen")
+    parser.add_argument("--after-update", action="store_true", help=argparse.SUPPRESS)
     args = parser.parse_args()
     url = f"http://127.0.0.1:{args.port}"
     paths.ensure_data_dir()
+    _update_on_start(args)
+    if args.after_update:  # alte Fassung gibt den Port gerade erst frei
+        for _ in range(60):
+            if not _port_in_use(args.port):
+                break
+            time.sleep(0.5)
     if _port_in_use(args.port):  # läuft schon (z. B. zweiter Doppelklick) -> nur Browser öffnen
         print(f"Liederverwaltung läuft bereits auf {url}")
         if not args.no_browser:
             webbrowser.open(url)
         return
-    print(f"Liederverwaltung läuft auf {url}  (Beenden: dieses Fenster schließen oder Strg+C)")
+    print(f"Liederverwaltung {updater.VERSION} läuft auf {url}  (Beenden: dieses Fenster schließen oder Strg+C)")
+    if updater.can_update()[0]:
+        threading.Thread(target=_update_loop, args=(5 if args.after_update else 60,), daemon=True).start()
     print(f"Datenordner: {paths.DATA_DIR}")
     print(f"Liederordner: {SONGS_DIR}")
     if not args.no_browser:

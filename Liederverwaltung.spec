@@ -12,7 +12,7 @@ a = Analysis(
         ("examples", "examples"),
         ("export_settings.json", "."),
     ],
-    hiddenimports=pb2 + ["propresenterFormatter.formatter"],
+    hiddenimports=pb2 + ["propresenterFormatter.formatter", "version"],  # version.py schreibt der Build
     excludes=["tkinter"],
 )
 pyz = PYZ(a.pure)

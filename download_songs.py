@@ -155,16 +155,17 @@ class ChurchToolsClient:
                           "url": f.get("frontendUrl") or ""})
         return files
 
-    def file_meta(self, file_id: str) -> tuple[str, str]:
-        """Download-Adresse und echter Dateiname (GET /files/{id}/meta -> fileUrl, filename).
+    def file_meta(self, file_id: str, title: str = "") -> tuple[str, str]:
+        """Download-Adresse und echter Dateiname (GET /files/{id}/meta -> fileUrl, name).
 
-        Der „title“ am Termin ist nur ein Anzeigename und muss keine Dateiendung haben.
+        Vorsicht: „filename“ ist bei ChurchTools der interne Speichername (64-stelliger Hash ohne Endung),
+        der echte Name steht in „name“. Der „title“ am Termin ist nur ein Anzeigename.
         """
         data = self._get_data(f"files/{file_id}/meta", "Datei").get("data") or {}
         url = data.get("fileUrl") or ""
         if not url:
             raise ChurchToolsError(f"Datei {file_id}: keine Download-Adresse")
-        return url, (data.get("filename") or "").strip()
+        return url, file_display_name(data.get("name"), title, data.get("filename"))
 
     def download(self, file_url: str, target: Path) -> None:
         if not file_url.startswith("http"):
@@ -177,6 +178,15 @@ class ChurchToolsClient:
                 for chunk in resp.iter_content(chunk_size=65536):
                     fh.write(chunk)
             tmp.replace(target)
+
+
+_EXT_RE = re.compile(r"\.[A-Za-z0-9]{2,5}$")
+
+
+def file_display_name(*candidates: str | None) -> str:
+    """Erster Name mit Dateiendung, sonst der erste überhaupt (Reihenfolge = Vorrang)."""
+    names = [c.strip() for c in candidates if c and c.strip()]
+    return next((n for n in names if _EXT_RE.search(n)), names[0] if names else "")
 
 
 def safe_filename(name: str) -> str:

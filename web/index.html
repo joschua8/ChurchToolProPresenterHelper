@@ -71,6 +71,9 @@ label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 4px
 .notice.warn { background: var(--warn-soft); color: var(--warn); }
 .notice.error { background: var(--danger-soft); color: var(--danger); }
 .notice.ok { background: var(--ok-soft); color: var(--ok); }
+.update-bar { max-width: 1320px; margin: 10px auto 0; padding: 0 24px; }
+.update-bar .notice { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin: 0; }
+.update-bar .notice span { flex: 1; min-width: 200px; }
 .muted { color: var(--muted); }
 .badge { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 10px; background: var(--code); color: var(--muted); vertical-align: middle; white-space: nowrap; }
 .badge.manual { background: var(--accent-soft); color: var(--accent); }
@@ -305,6 +308,7 @@ details.token summary { cursor: pointer; font-size: 13px; color: var(--muted); m
   </nav>
   <button class="ct-pill" id="ct-pill" title="ChurchTools-Anmeldung (Einstellungen)"><i></i><span>ChurchTools: nicht angemeldet</span></button>
 </header>
+<div class="update-bar" id="update-bar" hidden></div>
 <div class="subbar" id="subbar" hidden><div class="subnav" id="subnav"></div></div>
 
 <main>
@@ -386,6 +390,7 @@ details.token summary { cursor: pointer; font-size: 13px; color: var(--muted); m
             <label class="check" style="margin-bottom:6px;font-size:13px"><input type="checkbox" data-pl="add_lords_prayer"> Vaterunser unter „Vaterunser“</label>
             <label class="check" style="margin-bottom:6px;font-size:13px"><input type="checkbox" data-pl="add_silence"> Stille-Bilder unter „Stille“</label>
           </fieldset>
+          <label class="check" style="margin-top:10px;font-size:13px" title="Unter Windows nötig, damit ProPresenter die Lieder anzeigt (fragt dann, ob vorhandene ersetzt werden sollen). Unter macOS aus lassen, sonst entstehen Duplikate."><input type="checkbox" data-pl="embed_songs"> Lieder in die Playlist-Datei packen</label>
         </div>
       </div>
     </div>
@@ -545,6 +550,15 @@ details.token summary { cursor: pointer; font-size: 13px; color: var(--muted); m
           <ul class="lib-order" id="pl-libs"></ul>
         </fieldset>
         <div id="s-pp-msg"></div>
+      </div>
+
+      <div class="panel card">
+        <h3>Programm-Updates</h3>
+        <p class="lead">Neue Versionen werden automatisch von GitHub geladen.</p>
+        <div class="kv" id="s-up"></div>
+        <label class="check" style="font-size:13px;margin-top:10px"><input type="checkbox" id="s-up-auto"> Beim Programmstart automatisch aktualisieren</label>
+        <div class="btn-row" style="margin-top:10px"><button class="btn small" id="s-up-check">Jetzt prüfen</button></div>
+        <div id="s-up-msg" style="margin-top:8px"></div>
       </div>
 
       <div class="panel card">
@@ -1861,6 +1875,7 @@ async function openSettingsTab() {
   ctState = appSettings.ct; renderCtBox();
   renderSettingsCt();
   applyLibrary(await api("/api/playlist/library"));
+  refreshUpdate();
   $("#s-db").innerHTML = `<span>Ordner</span><code>${esc(appSettings.songsDir)}</code>
     <span>Lieder</span><span>${songs.length} (${songs.filter(s => s.manual).length} hochgeladen)</span>
     <span>Ohne .sng</span><span>${missing.filter(m => !m.covered).length} noch ohne Text</span>`;
@@ -1921,6 +1936,69 @@ async function ctLogin() {
   }
 }
 
+/* ---------------- Updates ---------------- */
+let upState = null;
+
+function renderUpdate() {
+  const u = upState;
+  if (!u) return;
+  const bar = $("#update-bar");
+  bar.hidden = !(u.available && u.enabled);
+  if (!bar.hidden) {
+    bar.innerHTML = `<div class="notice ok"><span>Neue Version <b>${esc(u.available.version)}</b> verfügbar (installiert: ${esc(u.version)}).</span>
+      <button class="btn small primary" data-update-install ${u.installing ? "disabled" : ""}>${u.installing ? "Wird installiert …" : "Jetzt aktualisieren"}</button></div>`;
+  }
+  const box = $("#s-up");
+  if (!box) return;
+  const when = u.checkedAt ? new Date(u.checkedAt * 1000).toLocaleString("de-DE") : "noch nicht";
+  box.innerHTML = `<span>Installiert</span><span>${esc(u.version)}</span>
+    <span>Neueste</span><span>${u.newest ? esc(u.newest) : "–"}${u.available ? ' <span class="badge">neu</span>' : (u.newest ? " (aktuell)" : "")}</span>
+    <span>Geprüft</span><span>${esc(when)}</span>`;
+  $("#s-up-auto").checked = !!u.auto;
+  $("#s-up-auto").disabled = $("#s-up-check").disabled = !u.enabled;
+  const msg = !u.enabled ? `<div class="notice warn">${esc(u.reason)}</div>`
+    : u.error ? `<div class="notice warn">${esc(u.error)}</div>`
+    : u.available ? `<div class="notice ok">Version ${esc(u.available.version)} verfügbar. <button class="btn small primary" data-update-install>Jetzt aktualisieren</button></div>` : "";
+  $("#s-up-msg").innerHTML = msg;
+}
+
+async function refreshUpdate() {
+  try { upState = await api("/api/update"); renderUpdate(); } catch {}
+}
+
+async function installUpdate(btn) {
+  if (btn) { btn.disabled = true; btn.textContent = "Wird geladen …"; }
+  try {
+    const res = await api("/api/update/install", {method: "POST", body: {}});
+    $("#update-bar").hidden = false;
+    $("#update-bar").innerHTML = `<div class="notice ok"><span>Version ${esc(res.version)} installiert – Programm startet neu …</span></div>`;
+    const old = upState.version;
+    for (let i = 0; i < 90; i++) {  // warten, bis die neue Fassung antwortet
+      await new Promise(r => setTimeout(r, 1000));
+      try { const c = await api("/api/config"); if (c.version && c.version !== old) { location.reload(); return; } } catch {}
+    }
+    $("#update-bar").innerHTML = '<div class="notice warn"><span>Das Programm hat nicht neu gestartet. Bitte von Hand neu öffnen.</span></div>';
+  } catch (err) {
+    $("#update-bar").hidden = false;
+    $("#update-bar").innerHTML = `<div class="notice error"><span>Update fehlgeschlagen: ${esc(err.message)}</span></div>`;
+  }
+}
+
+document.addEventListener("click", e => {
+  const b = e.target.closest("[data-update-install]");
+  if (b) installUpdate(b);
+});
+$("#s-up-check").onclick = async () => {
+  $("#s-up-check").disabled = true;
+  try { upState = await api("/api/update/check", {method: "POST", body: {}}); renderUpdate(); }
+  catch (err) { $("#s-up-msg").innerHTML = `<div class="notice error">${esc(err.message)}</div>`; }
+  $("#s-up-check").disabled = false;
+};
+$("#s-up-auto").onchange = async () => {
+  upState = await api("/api/update/settings", {method: "PUT", body: {auto: $("#s-up-auto").checked}});
+  renderUpdate();
+};
+
 /* ---------------- Start ---------------- */
 (async () => {
   await initExport();
@@ -1929,6 +2007,8 @@ async function ctLogin() {
   refreshCtStatus().catch(() => {});
   showTab(tab && document.getElementById("tab-" + tab) ? tab : "songs");
   poll();  // falls noch ein Import läuft
+  refreshUpdate();
+  setInterval(refreshUpdate, 30 * 60 * 1000);
 })();
 </script>
 </body>
