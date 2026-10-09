@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import re
 
-from sng import Song, parse_freetext, parse_sng
+from songbridge.songs.sng import Song, parse_freetext, parse_sng
 
 EXTENSIONS = (".usr", ".txt", ".sng")
 

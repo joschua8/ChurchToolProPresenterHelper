@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """Lokale Weboberfläche für die Liederdatenbank.
 
-Start:  .venv/bin/python app.py   ->  http://127.0.0.1:5005
+Start:  .venv/bin/python -m songbridge   ->  http://127.0.0.1:5005
 
   * Lieder: alle .sng-Lieder im Ordner songs/ durchsuchen, SongSelect-Dateien (.usr/.txt) hochladen
   * ChurchTools: Ablaufpläne ansehen und als ProPresenter-Playlist (.proPlaylist) exportieren;
-    Lieder-Import mit Abgleich (nur neue/geänderte Lieder werden geladen, download_songs.py)
-  * ProPresenter: Abgleich Liederdatenbank <-> Lieder-Bibliothek (pp_sync.py), Export als .pro
+    Lieder-Import mit Abgleich (nur neue/geänderte Lieder werden geladen, churchtools.py)
+  * ProPresenter: Abgleich Liederdatenbank <-> Lieder-Bibliothek (propresenter/sync.py), Export als .pro
   * Einstellungen: ChurchTools-Anmeldung, Ordner der ProPresenter-Lieder-Bibliothek
 """
 
@@ -31,14 +31,13 @@ from urllib.parse import quote
 import requests
 from flask import Flask, abort, jsonify, request, send_file, send_from_directory
 
-import download_songs as dl
-import playlist
-import paths
-import pp_sync
-import pro_export
-import songselect
-import updater
-from sng import (
+from songbridge import churchtools as dl
+from songbridge import paths, updater
+from songbridge.propresenter import export as pro_export
+from songbridge.propresenter import playlist
+from songbridge.propresenter import sync as pp_sync
+from songbridge.songs import songselect
+from songbridge.songs.sng import (
     Song,
     build_sng,
     is_manual_file,
@@ -849,10 +848,14 @@ def install_update():
         with up.lock:
             up.installing = False
         return error(str(exc))
+    if not updater.CAN_RESTART:  # macOS: beenden, der Benutzer öffnet die neue Version selbst
+        print(f"Version {latest['version']} installiert. Programm wird beendet.\n{updater.REOPEN_HINT}")
+        threading.Timer(1.0, os._exit, args=(0,)).start()
+        return jsonify({"ok": True, "version": latest["version"], "restart": False})
     port = request.host.rsplit(":", 1)[-1]
     # Antwort erst ausliefern, dann neu starten
     threading.Timer(1.0, updater.restart, args=(["--port", port, "--no-browser", "--after-update"],)).start()
-    return jsonify({"ok": True, "version": latest["version"]})
+    return jsonify({"ok": True, "version": latest["version"], "restart": True})
 
 
 def _update_loop(first_delay: float) -> None:
@@ -877,6 +880,9 @@ def _update_on_start(args) -> None:
     except updater.UpdateError as exc:
         print(f"Update nicht möglich: {exc}")
         return
+    if not updater.CAN_RESTART:
+        print(updater.REOPEN_HINT)
+        os._exit(0)
     print("Starte neu …")
     updater.restart(sys.argv[1:] + ["--after-update"])
 

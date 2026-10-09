@@ -82,7 +82,7 @@ aus früheren Versionen). Zum Umziehen einfach den Ordner mitkopieren. Anderer O
 - **[greyshirtguy/ProPresenter7-Proto](https://github.com/greyshirtguy/ProPresenter7-Proto)** – die
   reverse-engineerten Protobuf-Definitionen des ProPresenter-7-Dateiformats. Ohne sie wäre die Umwandlung
   von SongBeamer-Dateien in ProPresenter-Präsentationen (und das Schreiben von Playlists) nicht möglich.
-  Die daraus erzeugten `*_pb2.py` in `propresenterFormatter/` stehen unter der MIT-Lizenz von greyshirtguy
-  (siehe [`propresenterFormatter/LICENSE-ProPresenter7-Proto`](propresenterFormatter/LICENSE-ProPresenter7-Proto)).
+  Die daraus erzeugten `*_pb2.py` in `songbridge/propresenter/proto/` stehen unter der MIT-Lizenz von greyshirtguy
+  (siehe [`LICENSE-ProPresenter7-Proto`](songbridge/propresenter/proto/LICENSE-ProPresenter7-Proto)).
   Vielen Dank!
 - [ChurchTools](https://church.tools) für die offene REST-API.

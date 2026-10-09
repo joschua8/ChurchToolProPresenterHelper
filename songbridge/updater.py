@@ -5,7 +5,7 @@ github.com/joschua8/songbridge abgefragt. Ist es neuer als die eigene Version,
 wird die ZIP für diese Plattform geladen, das Programm daneben ausgepackt und die laufende Datei
 ersetzt; danach startet das Programm neu.
 
-  * Version: version.py (vom Build aus Datum + Laufnummer geschrieben, z. B. 2026.10.09.42).
+  * Version: songbridge/version.py (vom Build aus Datum + Laufnummer geschrieben, z. B. 2026.10.09.42).
     Aus dem Quellcode gestartet („dev“) wird nie aktualisiert.
   * Windows: eine laufende .exe kann nicht überschrieben, aber umbenannt werden ->
     alte Datei wird zu „….exe.old“ (beim nächsten Start gelöscht), neue kommt an ihren Platz.
@@ -29,10 +29,10 @@ from pathlib import Path
 
 import requests
 
-import paths
+from songbridge import paths
 
 try:
-    from version import __version__ as VERSION
+    from songbridge.version import __version__ as VERSION
 except ImportError:  # Quellcode ohne Build
     VERSION = "dev"
 
@@ -40,6 +40,13 @@ REPO = "joschua8/songbridge"
 LATEST_URL = os.environ.get("SONGBRIDGE_UPDATE_URL", f"https://api.github.com/repos/{REPO}/releases/latest")  # Env: zum Testen
 CHECK_INTERVAL = 6 * 3600
 ENV_DISABLE = "SONGBRIDGE_NO_UPDATE"
+# macOS beendet eine frisch geladene, nicht notarisierte Programmdatei sofort (SIGKILL), wenn das
+# Programm sie selbst startet – nur ein Start durch den Benutzer (Finder) geht, beim ersten Mal mit
+# Rückfrage. Weiterlaufen geht auch nicht: PyInstaller liest Module laufend aus der (jetzt ersetzten)
+# Programmdatei nach -> Absturz. Dort also installieren, beenden und den Benutzer neu öffnen lassen.
+CAN_RESTART = sys.platform != "darwin"
+REOPEN_HINT = ("Bitte SongBridge neu öffnen. macOS fragt beim ersten Start der neuen Version einmal nach:\n"
+               "  Systemeinstellungen → Datenschutz & Sicherheit → „Dennoch öffnen“.")
 
 
 class UpdateError(RuntimeError):
@@ -79,6 +86,7 @@ class Updater:
         self.checked_at = 0.0
         self.error = ""
         self.installing = False
+        self.installed = ""               # schon installierte, aber noch nicht laufende Version (macOS)
         self.newest = ""                  # neueste veröffentlichte Version (auch wenn nicht neuer)
 
     # ------------------------------------------------------------------ Abfrage
@@ -102,7 +110,7 @@ class Updater:
         version = (rel.get("tag_name") or "").lstrip("v")
         asset = next((a for a in rel.get("assets") or [] if a.get("name") == asset_name()), None)
         latest = None
-        if asset and version_tuple(version) > version_tuple(VERSION):
+        if asset and version_tuple(version) > version_tuple(self.installed or VERSION):
             latest = {"version": version, "url": asset.get("browser_download_url"), "size": asset.get("size") or 0,
                       "notes": (rel.get("body") or "").strip()[:2000], "page": rel.get("html_url") or ""}
         with self.lock:
@@ -121,6 +129,8 @@ class Updater:
                 "checkedAt": self.checked_at,
                 "error": self.error,
                 "installing": self.installing,
+                "installed": self.installed,
+                "canRestart": CAN_RESTART,
             }
 
     # ------------------------------------------------------------------ Installation
@@ -169,6 +179,8 @@ class Updater:
         except OSError as exc:
             new.unlink(missing_ok=True)
             raise UpdateError(f"Programmdatei nicht ersetzbar ({exc}). Liegt sie in einem schreibgeschützten Ordner?") from exc
+        with self.lock:
+            self.installed, self.latest = latest["version"], None
         log(f"Version {latest['version']} installiert.")
 
 

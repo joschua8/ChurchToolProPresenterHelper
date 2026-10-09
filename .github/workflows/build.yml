@@ -50,9 +50,9 @@ jobs:
           pip install -r requirements.txt pyinstaller
       - name: Versionsnummer
         shell: bash
-        run: echo '__version__ = "${{ needs.version.outputs.version }}"' > version.py
+        run: echo '__version__ = "${{ needs.version.outputs.version }}"' > songbridge/version.py
       - name: Bauen
-        run: pyinstaller --noconfirm --clean SongBridge.spec
+        run: pyinstaller --noconfirm --clean packaging/SongBridge.spec
       - name: Kurztest
         shell: bash
         run: |
@@ -66,8 +66,8 @@ jobs:
         run: |
           mkdir -p pkg
           cp dist/SongBridge* pkg/
-          cp ANLEITUNG.md pkg/
-          cp propresenterFormatter/LICENSE-ProPresenter7-Proto pkg/
+          cp docs/ANLEITUNG.md pkg/
+          cp songbridge/propresenter/proto/LICENSE-ProPresenter7-Proto pkg/
           (cd pkg && 7z a ../SongBridge-${{ matrix.name }}.zip . > /dev/null)
           # Übergang von früheren Namen: ältere Versionen suchen „<Name>-*.zip“ mit „<Name>*“ darin
           # (2026.10.09.8 = Liederverwaltung, .12–.14 = Liedbruecke).
