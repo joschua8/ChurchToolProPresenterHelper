@@ -757,7 +757,7 @@ def pp_diff():
     if not pp_dir or not pp_dir.is_dir():
         return jsonify({"error": "Keine ProPresenter-Lieder-Bibliothek gefunden – bitte unter Einstellungen den Ordner angeben.",
                         "needsSettings": True}), 400
-    rows = pp_sync.diff(SONGS_DIR, pp_dir, dl.load_index(SONGS_DIR))
+    rows = pp_sync.diff(SONGS_DIR, pp_dir, dl.load_index(SONGS_DIR), pro_export.load_style())
     counts: dict[str, int] = {}
     for r in rows:
         counts[r.status] = counts.get(r.status, 0) + 1
@@ -779,7 +779,7 @@ def pp_write():
     if not pp_dir or not pp_dir.is_dir():
         return error("Keine ProPresenter-Lieder-Bibliothek gefunden – bitte unter Einstellungen den Ordner angeben.")
     index = dl.load_index(SONGS_DIR)
-    rows = {r.db.id: r for r in pp_sync.diff(SONGS_DIR, pp_dir, index) if r.db and r.db.id in ids}
+    rows = {r.db.id: r for r in pp_sync.diff(SONGS_DIR, pp_dir, index, pro_export.load_style()) if r.db and r.db.id in ids}
     targets, chosen, skipped = {}, [], []
     for sid, r in rows.items():
         if r.status == "db_only":
