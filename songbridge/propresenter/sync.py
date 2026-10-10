@@ -103,16 +103,20 @@ def norm_line(line: str) -> str:
 
 def song_lines(song: Song) -> list[str]:
     """Zeilen, die der Export aus diesem Lied macht (inkl. Übersetzung), ohne Wiederholungen."""
-    groups, _ = pro_export.song_groups(song, pro_export.ExportStyle())
+    groups, _ = pro_export.song_groups(song, pro_export.ExportStyle(title_slide=False))
     return [t for g in groups for slide in g.slides for kind, t in slide if kind != "spacer" and t.strip()]
 
 
 def pro_lines(path: Path) -> tuple[str, list[str]]:
-    """-> (Präsentationsname, Textzeilen aller Folien)."""
+    """-> (Präsentationsname, Textzeilen aller Folien außer der Titelfolie)."""
     pres = presentation_pb2.Presentation()
     pres.ParseFromString(path.read_bytes())
+    title_cues = {cid.string for cg in pres.cue_groups if cg.group.name == pro_export.TITLE_NAME
+                  for cid in cg.cue_identifiers}
     lines: list[str] = []
     for cue in pres.cues:
+        if cue.uuid.string in title_cues:
+            continue
         for action in cue.actions:
             if not action.HasField("slide"):
                 continue
