@@ -69,20 +69,10 @@ jobs:
           cp docs/ANLEITUNG.md pkg/
           cp songbridge/propresenter/proto/LICENSE-ProPresenter7-Proto pkg/
           (cd pkg && 7z a ../SongBridge-${{ matrix.name }}.zip . > /dev/null)
-          # Übergang von früheren Namen: ältere Versionen suchen „<Name>-*.zip“ mit „<Name>*“ darin
-          # (2026.10.09.8 = Liederverwaltung, .12–.14 = Liedbruecke).
-          for old in Liederverwaltung Liedbruecke; do
-            mkdir -p "legacy-$old"
-            for f in dist/SongBridge*; do cp "$f" "legacy-$old/$(basename "$f" | sed "s/^SongBridge/$old/")"; done
-            (cd "legacy-$old" && 7z a "../$old-${{ matrix.name }}.zip" . > /dev/null)
-          done
       - uses: actions/upload-artifact@v4
         with:
           name: SongBridge-${{ matrix.name }}
-          path: |
-            SongBridge-${{ matrix.name }}.zip
-            Liedbruecke-${{ matrix.name }}.zip
-            Liederverwaltung-${{ matrix.name }}.zip
+          path: SongBridge-${{ matrix.name }}.zip
 
   release:
     if: github.ref == 'refs/heads/master'
