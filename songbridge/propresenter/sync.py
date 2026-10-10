@@ -107,8 +107,8 @@ def song_lines(song: Song) -> list[str]:
     return [t for g in groups for slide in g.slides for kind, t in slide if kind != "spacer" and t.strip()]
 
 
-def pro_lines(path: Path) -> tuple[str, list[str]]:
-    """-> (Präsentationsname, Textzeilen aller Folien außer der Titelfolie)."""
+def pro_lines(path: Path) -> tuple[str, list[str], bool]:
+    """-> (Präsentationsname, Textzeilen aller Folien außer der Titelfolie, hat Titelfolie?)."""
     pres = presentation_pb2.Presentation()
     pres.ParseFromString(path.read_bytes())
     title_cues = {cid.string for cg in pres.cue_groups if cg.group.name == pro_export.TITLE_NAME
@@ -126,7 +126,7 @@ def pro_lines(path: Path) -> tuple[str, list[str]]:
                     continue
                 text = rtf_to_text(rtf.decode("latin-1", errors="replace"))
                 lines.extend(ln for ln in text.split("\n") if ln.strip())
-    return pres.name, lines
+    return pres.name, lines, bool(title_cues)
 
 
 def compare_lines(db: list[str], pp: list[str]) -> tuple[bool, list[str], list[str]]:
@@ -204,7 +204,8 @@ class DiffRow:
         }
 
 
-def diff(songs_dir: Path, pp_dir: Path | None, index: dict) -> list[DiffRow]:
+def diff(songs_dir: Path, pp_dir: Path | None, index: dict, style=None) -> list[DiffRow]:
+    """style: Exportformatierung – ist dort die Titelfolie an, fehlt sie aber in ProPresenter, gilt das Lied als abweichend."""
     db = db_songs(songs_dir, index)
     files = pp_files(pp_dir)
     by_stem = {nfc(f.stem).casefold(): f for f in files}
@@ -239,12 +240,14 @@ def diff(songs_dir: Path, pp_dir: Path | None, index: dict) -> list[DiffRow]:
             rows.append(DiffRow("db_only", s.name, s))
             continue
         try:
-            _, lines = pro_lines(f)
+            _, lines, has_title = pro_lines(f)
         except Exception as exc:
             rows.append(DiffRow("error", s.name, s, f, note=f".pro nicht lesbar: {exc}"))
             continue
         same, only_db, only_pp = compare_lines(song_lines(s.song), lines)
         note = "" if nfc(f.stem) == nfc(s.stem) else f"Dateiname in ProPresenter: {nfc(f.name)}"
+        if same and style is not None and style.title_slide and s.song.title.strip() and not has_title:
+            same, note = False, "; ".join(filter(None, ["Titelfolie fehlt", note]))
         rows.append(DiffRow("same" if same else "different", s.name, s, f, only_db, only_pp, note))
     for f in files:
         if f not in used:
