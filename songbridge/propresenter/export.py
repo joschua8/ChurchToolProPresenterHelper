@@ -72,6 +72,8 @@ GROUP_COLORS = {
 }
 # Leere Folie vor dem Liedtext (eigene Gruppe am Anfang des Arrangements).
 BLANK_LABEL, BLANK_NAME, BLANK_COLOR = "__blank__", "Blank", (0.2, 0.2, 0.2)
+# Titelfolie nach der leeren Folie (Liedtitel, gleiche Formatierung wie der Liedtext).
+TITLE_LABEL, TITLE_NAME, TITLE_COLOR = "__title__", "Title", (1, 1, 1)
 NOTE_ABBR = {
     "Verse": "V", "Chorus": "CHO", "Pre-Chorus": "PRE", "Bridge": "BRI", "Intro": "INT",
     "Outro": "OUT", "Interlude": "INS", "Instrumental": "INS", "Coda": "CODA", "Misc": "MISC", "Tag": "TAG",
@@ -142,6 +144,7 @@ class ExportStyle:
     shadow: bool = False          # Textschatten (im Beispiel konfiguriert, aber aus)
     shrink_to_fit: bool = False   # ProPresenter verkleinert Schrift, wenn der Text nicht passt
     blank_first: bool = True      # leere Folie vor dem Liedtext
+    title_slide: bool = True      # Folie mit dem Liedtitel vor dem Liedtext (nach der leeren Folie)
     hotkeys_enabled: bool = True  # Tastenkürzel wie im Beispiel setzen
     hotkeys: dict = field(default_factory=lambda: dict(DEFAULT_HOTKEYS))  # Gruppenname -> Taste
 
@@ -394,7 +397,7 @@ def arrangement_notes(order: list[str]) -> str:
     """Kurzform der Reihenfolge wie im Beispiel: „V1 - V2 - CHO - V3 - CHO 2x“."""
     parts: list[list] = []
     for lbl in order:
-        if lbl == BLANK_LABEL:
+        if lbl in (BLANK_LABEL, TITLE_LABEL):
             continue
         t = section_type(lbl)
         num = re.search(r"(\d+)$", lbl)
@@ -434,6 +437,9 @@ def song_groups(song: Song, style: ExportStyle) -> tuple[list[Group], list[str]]
               section_slides(by_label[lbl], song.lang_count, style))
         for lbl in seen
     ]
+    if style.title_slide and song.title.strip():
+        groups.insert(0, Group(TITLE_LABEL, TITLE_NAME, TITLE_COLOR, [[("main", song.title.strip())]]))
+        order = [TITLE_LABEL] + order
     if style.blank_first:
         groups.insert(0, Group(BLANK_LABEL, BLANK_NAME, BLANK_COLOR, [[]]))
         order = [BLANK_LABEL] + order

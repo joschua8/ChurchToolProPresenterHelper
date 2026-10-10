@@ -47,5 +47,6 @@
     "Verse 6": "H",
     "Misc": "B"
   },
-  "blank_first": true
+  "blank_first": true,
+  "title_slide": true
 }
