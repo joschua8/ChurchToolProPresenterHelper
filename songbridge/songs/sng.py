@@ -3,7 +3,7 @@
 Aufbau einer .sng-Datei (UTF-8 mit BOM):
     #Title=...            Kopfzeilen "#Schlüssel=Wert"
     #VerseOrder=Verse 1,Chorus 1,...
-    ---                   Trenner vor jedem Abschnitt
+    ---                   Trenner vor jedem Abschnitt („--“ = neue Folie, wird genauso gelesen)
     Verse 1               Abschnittsname (erste Zeile nach dem Trenner)
     Liedzeile ...
 """
@@ -106,7 +106,8 @@ def read_text(path: Path) -> str:
 
 def parse_sng(text: str) -> Song:
     song = Song()
-    blocks = re.split(r"^---[ \t]*$", text.replace("\r\n", "\n").replace("\r", "\n"), flags=re.MULTILINE)
+    # SongBeamer: „---“ trennt Abschnitte, „--“ Folien. Ein Block ohne Abschnittsnamen hängt am vorigen Abschnitt.
+    blocks = re.split(r"^-{2,}[ \t]*$", text.replace("\r\n", "\n").replace("\r", "\n"), flags=re.MULTILINE)
     for line in blocks[0].splitlines():
         if line.startswith("#") and "=" in line:
             key, value = line[1:].split("=", 1)
