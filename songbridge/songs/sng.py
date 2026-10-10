@@ -51,6 +51,13 @@ _LABEL_RE = re.compile(
     r"\s*(\d+)?\s*[\])]?\s*:?\s*$",
     re.IGNORECASE,
 )
+# Abschnittsname in einer .sng (erste Zeile nach „---“): bekannte Bezeichnung, optional mit Nummer („Verse 1a“).
+# Alles andere ist schon Liedtext.
+_SNG_LABEL_RE = re.compile(
+    r"^\s*(" + "|".join(sorted(map(re.escape, [*LABEL_TYPES, "unbekannt", "unknown", "teil", "part"]),
+                              key=len, reverse=True)) + r")(?:\s*\d+[a-z]?)?\s*$",
+    re.IGNORECASE,
+)
 # Abschnitte ohne Text (leere Folie), z. B. "Instrumental" allein in einem Block
 TEXTLESS_TYPES = {"Instrumental", "Interlude", "Intro", "Ending"}
 # "1. Text..." oder "1) Text..." am Blockanfang (Gesangbuch-Stil)
@@ -117,14 +124,68 @@ def parse_sng(text: str) -> Song:
     except ValueError:
         song.lang_count = 1
 
+    parsed = []  # (Abschnittsname oder None, Zeilen)
     for block in blocks[1:]:
         lines = [ln.rstrip() for ln in block.strip("\n").split("\n")]
         while lines and not lines[-1]:
             lines.pop()
         if not lines:
             continue
-        song.sections.append(Section(label=lines[0].strip(), lines=lines[1:]))
+        if is_sng_label(lines[0]) or lines[0].strip() in song.order:
+            parsed.append((lines[0].strip(), lines[1:]))
+        else:  # erste Zeile ist schon Liedtext (z. B. alte SongBeamer-Dateien ohne Abschnittsnamen)
+            parsed.append((None, lines))
+    if all(label for label, _ in parsed):
+        song.sections = [Section(label, lines) for label, lines in parsed]
+    else:
+        _add_unlabeled(song, parsed)
     return song
+
+
+def is_sng_label(line: str) -> bool:
+    """Ist die erste Zeile eines Blocks ein Abschnittsname („Verse 1“, „Chorus“, „Unbekannt 2a“ …)?"""
+    return bool(_SNG_LABEL_RE.match(line))
+
+
+def _add_unlabeled(song: Song, parsed: list[tuple[str | None, list[str]]]) -> None:
+    """Blöcke ohne Abschnittsnamen einordnen (wie SongBeamer):
+
+      * nach einem benannten Abschnitt -> weitere Folie dieses Abschnitts;
+      * sonst (Lied ganz ohne Namen) -> eigener Abschnitt: Text, der mehrfach vorkommt, wird „Chorus“,
+        der Rest „Verse 1, 2, …“; Wiederholungen landen in der Reihenfolge.
+    """
+    taken = {label for label, _ in parsed if label}
+    counters: dict[str, int] = {}
+
+    def next_label(kind: str) -> str:
+        n = counters.get(kind, 0) + 1
+        while f"{kind} {n}" in taken:
+            n += 1
+        counters[kind] = n
+        taken.add(f"{kind} {n}")
+        return f"{kind} {n}"
+
+    texts = [_norm_lines(lines) for label, lines in parsed if label is None]
+    sequence: list[str] = []  # Abschnitte in Dateireihenfolge, mit Wiederholungen
+    generated: dict[str, Section] = {}  # Text -> erzeugter Abschnitt
+    named: Section | None = None  # zuletzt begonnener benannter Abschnitt
+    for label, lines in parsed:
+        if label:
+            named = Section(label, list(lines))
+            song.sections.append(named)
+            sequence.append(label)
+        elif named is not None:
+            named.lines.extend(lines)
+        elif (key := _norm_lines(lines)) in generated:
+            sequence.append(generated[key].label)
+        else:
+            sec = Section(next_label("Chorus" if texts.count(key) > 1 else "Verse"), list(lines))
+            generated[key] = sec
+            song.sections.append(sec)
+            sequence.append(sec.label)
+    # Die Kopfzeile VerseOrder kennt die erzeugten Abschnitte nicht -> Reihenfolge aus der Datei.
+    if generated:
+        song.order = sequence
 
 
 def read_sng(path: Path) -> Song:
